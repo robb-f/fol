@@ -320,7 +320,6 @@ def eval_color(grid, fol_exp):
     return exp
 
 
-# # # # # # # # IN PROGRESS # # # # # # # #
 def eval_num(grid, fol_exp):
     """ Returns list of expressions with valid number predicates
     
@@ -372,6 +371,51 @@ def eval_num(grid, fol_exp):
                 new_exp = list(color_exp)
                 new_exp.append(fol_exp.num_predicates[i])
                 exp.append(tuple(new_exp))
+        
+        # Even-Odd
+        for i in range(len(fol_exp.even_odd)):
+            all_check = True
+            some_check = False
+            quantifier = color_exp[0]
+            color = color_exp[1]
+            if color == "red":
+                color = "R"
+            elif color == "blue":
+                color = "B"
+            else:
+                color = "G"
+            num = fol_exp.even_odd[i]
+
+            for row in grid:
+                for col in row:
+                    if quantifier == "All":
+                        if color == col[1]:
+                            if num == "even=TRUE" and int(col[0]) % 2 != 0:
+                                all_check = False
+                                break
+                            elif num == "odd=TRUE" and int(col[0]) % 2 != 1:
+                                all_check = False
+                                break
+                    else:
+                        if color == col[1]:
+                            if num == "even=TRUE" and int(col[0]) % 2 == 0:
+                                some_check = True
+                                break
+                            elif num == "odd=TRUE" and int(col[0]) % 2 == 1:
+                                some_check = True
+                                break
+                    
+                if not all_check or some_check:
+                    break
+            
+            if all_check and quantifier == "All":
+                new_exp = list(color_exp)
+                new_exp.append(fol_exp.even_odd[i])
+                exp.append(tuple(new_exp))
+            elif some_check and quantifier == "Some":
+                new_exp = list(color_exp)
+                new_exp.append(fol_exp.even_odd[i])
+                exp.append(tuple(new_exp))
     
     
     # SHAPE EXPRESSIONS
@@ -413,111 +457,37 @@ def eval_num(grid, fol_exp):
                 new_exp = list(shape_exp)
                 new_exp.append(fol_exp.num_predicates[i])
                 exp.append(tuple(new_exp))
-    '''
-    # NUMBER EXPRESSIONS
-    for num_exp in fol_exp.num_exp:
-        for i in range(len(fol_exp.color_predicates)):
+        
+        # Even-Odd
+        for i in range(len(fol_exp.even_odd)):
             all_check = True
             some_check = False
-            quantifier = num_exp[0]
-            num = num_exp[1]
-            color = fol_exp.color_predicates[i].split("color=")[1]
-            if color == "red":
-                color = "R"
-            elif color == "blue":
-                color = "B"
-            else:
-                color = "G"
-
-            for row in grid:
-                for col in row:
-                    if quantifier == "All":
-                        if num == col[0]:
-                            if color != col[1]:
-                                all_check = False
-                                break
-                        elif num == "even" and int(col[0]) % 2 == 0:
-                            if color != col[1]:
-                                all_check = False
-                                break
-                        elif num == "odd" and int(col[0]) % 2 == 1:
-                            if color != col[1]:
-                                all_check = False
-                                break
-                    else:
-                        if num == col[0]:
-                            if color == col[1]:
-                                some_check = True
-                                break
-                        elif num == "even" and int(col[0]) % 2 == 0:
-                            if color == col[1]:
-                                some_check = True
-                                break
-                        elif num == "odd" and int(col[0]) % 2 == 1:
-                            if color == col[1]:
-                                some_check = True
-                                break
-                    
-                if not all_check or some_check:
-                    break
-            
-            if all_check and quantifier == "All":
-                new_exp = list(num_exp)
-                new_exp.append(fol_exp.color_predicates[i])
-                exp.append(tuple(new_exp))
-            elif some_check and quantifier == "Some":
-                new_exp = list(num_exp)
-                new_exp.append(fol_exp.color_predicates[i])
-                exp.append(tuple(new_exp))
-    
-    # SHAPE-NUMBER EXPRESSIONS
-    for shape_num_exp in fol_exp.shape_num_exp:
-        for i in range(len(fol_exp.color_predicates)):
-            all_check = True
-            some_check = False
-            quantifier = shape_num_exp[0]
-            shape = shape_num_exp[1]
+            quantifier = shape_exp[0]
+            shape = shape_exp[1]
             if shape == "triangles":
                 shape = "T"
             elif shape == "squares":
                 shape = "S"
             else:
                 shape = "C"
-            num = shape_num_exp[2]
-            color = fol_exp.color_predicates[i].split("color=")[1]
-            if color == "red":
-                color = "R"
-            elif color == "blue":
-                color = "B"
-            else:
-                color = "G"
-            
+            num = fol_exp.even_odd[i]
+
             for row in grid:
                 for col in row:
                     if quantifier == "All":
-                        if num == col[0] and shape == col[2]:
-                            if color != col[1]:
+                        if shape == col[2]:
+                            if num == "even=TRUE" and int(col[0]) % 2 != 0:
                                 all_check = False
                                 break
-                        elif num == "even" and int(col[0]) % 2 == 0 and shape == col[2]:
-                            if color != col[1]:
-                                all_check = False
-                                break
-                        elif num == "odd" and int(col[0]) % 2 == 1 and shape == col[2]:
-                            if color != col[1]:
+                            elif num == "odd=TRUE" and int(col[0]) % 2 != 1:
                                 all_check = False
                                 break
                     else:
-                        if num == col[0]:
-                            if color == col[1] and shape == col[2]:
+                        if shape == col[2]:
+                            if num == "even=TRUE" and int(col[0]) % 2 == 0:
                                 some_check = True
                                 break
-                        elif num == "even" and int(col[0]) % 2 == 0 and shape == col[2]:
-                            if color == col[1]:
-                                some_check = True
-                                break
-                        elif num == "odd" and int(col[0]) % 2 == 1 and shape == col[2]:
-                            if color == col[1]:
+                            elif num == "odd=TRUE" and int(col[0]) % 2 == 1:
                                 some_check = True
                                 break
                     
@@ -525,14 +495,112 @@ def eval_num(grid, fol_exp):
                     break
             
             if all_check and quantifier == "All":
-                new_exp = list(shape_num_exp)
-                new_exp.append(fol_exp.color_predicates[i])
+                new_exp = list(shape_exp)
+                new_exp.append(fol_exp.even_odd[i])
                 exp.append(tuple(new_exp))
             elif some_check and quantifier == "Some":
-                new_exp = list(shape_num_exp)
-                new_exp.append(fol_exp.color_predicates[i])
+                new_exp = list(shape_exp)
+                new_exp.append(fol_exp.even_odd[i])
                 exp.append(tuple(new_exp))
-    '''
+    
+    # COLOR-SHAPE EXPRESSIONS
+    for color_shape_exp in fol_exp.color_shape_exp:
+        for i in range(len(fol_exp.num_predicates)):
+            all_check = True
+            some_check = False
+            quantifier = color_shape_exp[0]
+            color = color_shape_exp[1]
+            if color == "red":
+                color = "R"
+            elif color == "blue":
+                color = "B"
+            else:
+                color = "G"
+            shape = color_shape_exp[2]
+            if shape == "triangles":
+                shape = "T"
+            elif shape == "squares":
+                shape = "S"
+            else:
+                shape = "C"
+            num = fol_exp.num_predicates[i].split("num=")[1]
+            
+            for row in grid:
+                for col in row:
+                    if quantifier == "All":
+                        if color == col[1] and shape == col[2]:
+                            if num != col[0]:
+                                all_check = False
+                                break
+                    else:
+                        if color == col[1] and shape == col[2]:
+                            if num == col[0]:
+                                some_check = True
+                                break
+                    
+                if not all_check or some_check:
+                    break
+            
+            if all_check and quantifier == "All":
+                new_exp = list(color_shape_exp)
+                new_exp.append(fol_exp.num_predicates[i])
+                exp.append(tuple(new_exp))
+            elif some_check and quantifier == "Some":
+                new_exp = list(color_shape_exp)
+                new_exp.append(fol_exp.num_predicates[i])
+                exp.append(tuple(new_exp))
+        
+        for i in range(len(fol_exp.even_odd)):
+            all_check = True
+            some_check = False
+            quantifier = color_shape_exp[0]
+            color = color_shape_exp[1]
+            if color == "red":
+                color = "R"
+            elif color == "blue":
+                color = "B"
+            else:
+                color = "G"
+            shape = color_shape_exp[2]
+            if shape == "triangles":
+                shape = "T"
+            elif shape == "squares":
+                shape = "S"
+            else:
+                shape = "C"
+            num = fol_exp.even_odd[i]
+
+            for row in grid:
+                for col in row:
+                    if quantifier == "All":
+                        if color == col[1] and shape == col[2]:
+                            if num == "even=TRUE" and int(col[0]) % 2 != 0:
+                                all_check = False
+                                break
+                            elif num == "odd=TRUE" and int(col[0]) % 2 != 1:
+                                all_check = False
+                                break
+                    else:
+                        if color == col[1] and shape == col[2]:
+                            if num == "even=TRUE" and int(col[0]) % 2 == 0:
+                                some_check = True
+                                break
+                            elif num == "odd=TRUE" and int(col[0]) % 2 == 1:
+                                some_check = True
+                                break
+                    
+                if not all_check or some_check:
+                    break
+            
+            if all_check and quantifier == "All":
+                new_exp = list(color_shape_exp)
+                new_exp.append(fol_exp.even_odd[i])
+                exp.append(tuple(new_exp))
+            elif some_check and quantifier == "Some":
+                new_exp = list(color_shape_exp)
+                new_exp.append(fol_exp.even_odd[i])
+                exp.append(tuple(new_exp))
+    
     return exp
 
 
@@ -550,7 +618,7 @@ def generate_expressions(grid):
     #exp3 = eval_shape(grid, fol_exp)
     
     expressions.append(exp1)
-    #expressions.append(exp2)
+    expressions.append(exp2)
     #expressions.append(exp3)
     
     return expressions
