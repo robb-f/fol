@@ -89,6 +89,16 @@ class FOL:
         self.num_predicates = ["".join(["num=", str(i)]) for i in self.numbers]
         self.even_odd = ["even=TRUE", "odd=TRUE"]
         self.shape_predicates = ["shape=triangle", "shape=square", "shape=circle"]
+        self.location_predicates = ["loc=top2", "loc=top3",         # rows
+                                    "loc=right2", "loc=right3",     # columns
+                                    "loc=bottom2", "loc=bottom3",   # rows
+                                    "loc=left2", "loc=left3"]       # columns
+        
+        self.color_loc_predicates = list()
+        for color in self.color_predicates:
+            for location in self.location_predicates:
+                predicate = (color, location)
+                self.color_loc_predicates.append(predicate)
 
 
 def generate_grid(size):
@@ -800,12 +810,206 @@ def eval_shape(grid, fol_exp):
     
     return exp
 
+def eval_color_loc(grid, fol_exp):
+    """ Returns list of expressions with valid color-location predicates
+    
+    Args:
+        grid (list): the grid in list form
+        fol_exp (FOL): the FOL expressions object instance
+    
+    Returns:
+        list: valid expressions with shape predicates
+    """
+    exp = list()
+    #debug = open("debug.txt", mode='w')
+    
+    # SHAPE-NUMBER EXPRESSIONS
+    for shape_num_exp in fol_exp.shape_num_exp:
+        for i in range(len(fol_exp.color_loc_predicates)):
+            all_check = True
+            some_check = False
+            quantifier = shape_num_exp[0]
+            shape = shape_num_exp[1]
+            if shape == "triangles":
+                shape = "T"
+            elif shape == "squares":
+                shape = "S"
+            else:
+                shape = "C"
+            num = shape_num_exp[2]
+            color = fol_exp.color_loc_predicates[i][0].split("color=")[1]
+            if color == "red":
+                color = "R"
+            elif color == "blue":
+                color = "B"
+            else:
+                color = "G"
+            direction = fol_exp.color_loc_predicates[i][1].split("loc=")[1]
+            index = 0
+            limit = 0
+            if direction == "top2" or direction == "top3" or direction == "left2" or direction == "left3":
+                index = 0
+            elif direction == "bottom2" or direction == "bottom3" or direction == "right2" or direction == "right3":
+                index = len(grid[0])
+            limit = int(direction[len(direction) - 1])
+            direction = direction[:len(direction) - 1]
+            
+            # Check row by row, until you reach the limit
+            if direction == "top":
+                # Check for the validity of the color clause
+                while index < limit:
+                    for j in range(len(grid[0])):
+                        if quantifier == "All":
+                            if num == grid[index][j][0] and shape == grid[index][j][2]:
+                                if color != grid[index][j][1]: # counterexample
+                                    #print("failed on", quantifier, shape, num, color, direction, str(limit), end=", ")
+                                    #print(grid[index][j], "at", index)
+                                    all_check = False
+                                    break
+                            elif num == "even" and int(grid[index][j][0]) % 2 == 0 and shape == grid[index][j][2]:
+                                if color != grid[index][j][1]:
+                                    #print("failed on", quantifier, shape, num, color, direction, str(limit), end=", ")
+                                    #print(grid[index][j], "at", index)
+                                    all_check = False
+                                    break
+                            elif num == "odd" and int(grid[index][j][0]) % 2 == 1 and shape == grid[index][j][2]:
+                                if color != grid[index][j][1]:
+                                    #print("failed on", quantifier, shape, num, color, direction, str(limit), end=", ")
+                                    #print(grid[index][j], "at", index)
+                                    all_check = False
+                                    break
+                        else:
+                            if num == grid[index][j][0]:
+                                if color == grid[index][j][1] and shape == grid[index][j][2]: # Example
+                                    some_check = True
+                                    break
+                            elif num == "even" and int(grid[index][j][0]) % 2 == 0 and shape == grid[index][j][2]:
+                                if color == grid[index][j][1]:
+                                    some_check = True
+                                    break
+                            elif num == "odd" and int(grid[index][j][0]) % 2 == 1 and shape == grid[index][j][2]:
+                                if color == grid[index][j][1]:
+                                    some_check = True
+                                    break
+                        
+                    if not all_check or some_check:
+                        break
+                    
+                    index += 1
+                
+                #debug.write("===== ")
+                #debug.write(quantifier)
+                #debug.write(" ")
+                #debug.write(shape)
+                #debug.write(" ")
+                #debug.write(num)
+                #debug.write(" ")
+                #debug.write(color)
+                #debug.write(" ")
+                #debug.write(direction)
+                #debug.write(" ")
+                #debug.write(str(limit))
+                #debug.write(" ")
+                #debug.write(" =====\n")
+                
+                # Check validity of location clause
+                # Here, if we are out of bounds, but we reach a cell with a number and shape match, we immediately break
+                while index < len(grid[0]):
+                    for j in range(len(grid[0])):
+                        if some_check:
+                            break
+                        
+                        #debug.write("index = ")
+                        #debug.write(str(index))
+                        #debug.write("\n")
+                        #debug.write(grid[index][j])
+                        #debug.write("\n")
+                        if quantifier == "All":
+                            if num == grid[index][j][0] and shape == grid[index][j][2]:
+                                #print("round 2 failed on", quantifier, shape, num, color, direction, str(limit), end=", ")
+                                #print(grid[index][j], "at", index)
+                                all_check = False
+                                break
+                            elif num == "even" and int(grid[index][j][0]) % 2 == 0 and shape == grid[index][j][2]:
+                                #print("round 2 failed on", quantifier, shape, num, color, direction, str(limit), end=", ")
+                                #print(grid[index][j], "at", index)
+                                all_check = False
+                                break
+                            elif num == "odd" and int(grid[index][j][0]) % 2 == 1 and shape == grid[index][j][2]:
+                                #print("round 2 failed on", quantifier, shape, num, color, direction, str(limit), end=", ")
+                                #print(grid[index][j], "at", index)
+                                all_check = False
+                                break
+                    index += 1
+            elif direction == "bottom":
+                # TO-DO
+                # Backwards algorithm to "top"
+                # Start at len(grid[0]) and work your way backwards towards len(grid[0]) - limit
+                all_check = False
+            elif direction == "left":
+                # TO-DO
+                # Similar algorithm to "top"
+                all_check = False
+                """
+                for j in range(len(grid[0])):
+                    while index < limit:
+                        if quantifier == "All":
+                            if num == grid[j][index][0] and shape == grid[j][index][2]:
+                                if color != grid[j][index][1]: # counterexample
+                                    all_check = False
+                                    break
+                            elif num == "even" and int(grid[j][index][0]) % 2 == 0 and shape == grid[j][index][2]:
+                                if color != grid[j][index][1]:
+                                    all_check = False
+                                    break
+                            elif num == "odd" and int(grid[j][index][0]) % 2 == 1 and shape == grid[j][index][2]:
+                                if color != grid[j][index][1]:
+                                    all_check = False
+                                    break
+                        else:
+                            if num == grid[j][index][0]:
+                                if color == grid[j][index][1] and shape == grid[j][index][2]: # Example
+                                    some_check = True
+                                    break
+                            elif num == "even" and int(grid[j][index][0]) % 2 == 0 and shape == grid[j][index][2]:
+                                if color == grid[j][index][1]:
+                                    some_check = True
+                                    break
+                            elif num == "odd" and int(grid[j][index][0]) % 2 == 1 and shape == grid[j][index][2]:
+                                if color == grid[j][index][1]:
+                                    some_check = True
+                                    break
+                        
+                        index += 1
+                        
+                        if not all_check or some_check:
+                            break
+                """
+            elif direction == "right":
+                # TO-DO
+                # Similar algorithm to bottom
+                all_check = False
+            
+            if all_check and quantifier == "All":
+                #print("appending", quantifier, shape, num, color, direction, str(limit))
+                new_exp = list(shape_num_exp)
+                new_exp.append(fol_exp.color_loc_predicates[i])
+                exp.append(tuple(new_exp))
+            elif some_check and quantifier == "Some":
+                #print("appending", quantifier, shape, num, color, direction, str(limit))
+                new_exp = list(shape_num_exp)
+                new_exp.append(fol_exp.color_loc_predicates[i])
+                exp.append(tuple(new_exp))
+                
+    return exp
+
 def write_to_file(expression_file, count, expressions):
-    """ Helper functino for write_expressions()
+    """ Helper function for write_expressions()
     
     Args:
         expression_file (file): the expression file to write to
-        count (int): 0 is color, 1 is number, and 2 is shape predicates
+        count (int): 0 is color, 1 is number, 2 is shape predicates,
+                     3 is color-location predicates
         expressions (list): the full list of valid expressions
     """
     for exp in expressions:
@@ -823,7 +1027,7 @@ def write_to_file(expression_file, count, expressions):
                     splitter = "odd\n"
                 else:
                     splitter = exp[2].split("num=")[1] + "\n"
-            else:
+            elif count == 2:
                 splitter = exp[2].split("shape=")[1] + "s\n"
             
             expression_file.write(splitter)
@@ -839,8 +1043,12 @@ def write_to_file(expression_file, count, expressions):
                     splitter = "odd\n"
                 else:
                     splitter = exp[3].split("num=")[1] + "\n"
-            else:
+            elif count == 2:
                 splitter = exp[3].split("shape=")[1] + "s\n"
+            elif count == 3:
+                expression_file.write(exp[3][0].split("color=")[1] + " and ")
+                temp = exp[3][1].split("loc=")[1]
+                splitter = "located in the " + temp[:len(temp) - 1] + " " + temp[len(temp) - 1] + " rows of the grid\n"
             
             expression_file.write(splitter)
 
@@ -861,8 +1069,10 @@ def write_expressions(expressions):
             expression_file.write("COLOR PREDICATES\n")
         elif count == 1:
             expression_file.write("NUMBER PREDICATES\n")
-        else:
+        elif count == 2:
             expression_file.write("SHAPE PREDICATES\n")
+        elif count == 3:
+            expression_file.write("COLOR-LOCATION PREDICATES\n")
             
         write_to_file(expression_file, count, exp)
         
@@ -878,10 +1088,12 @@ def generate_expressions(grid):
     exp1 = eval_color(grid, fol_exp)
     exp2 = eval_num(grid, fol_exp)
     exp3 = eval_shape(grid, fol_exp)
+    exp4 = eval_color_loc(grid, fol_exp)
     
     expressions.append(exp1)
     expressions.append(exp2)
     expressions.append(exp3)
+    expressions.append(exp4)
     
     return expressions
 
@@ -892,4 +1104,3 @@ if __name__ == "__main__":
     print_grid(grid, size)
     expressions = generate_expressions(grid)
     write_expressions(expressions)
-    
