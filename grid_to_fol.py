@@ -83,6 +83,22 @@ class FOL:
             self.shape_num_exp.append(exp)
             exp = (self.quantifiers[1], shape, "odd")
             self.shape_num_exp.append(exp)
+            
+        # Min-Max Value expressions
+        self.min_exp = list()
+        self.max_exp = list()
+        for shape in self.shapes:
+            for num in self.numbers:
+                min_str = "min=" + num
+                max_str = "max=" + num
+                exp = (self.quantifiers[0], shape, min_str)
+                self.min_exp.append(exp)
+                exp = (self.quantifiers[0], shape, max_str)
+                self.max_exp.append(exp)
+                exp = (self.quantifiers[1], shape, min_str)
+                self.min_exp.append(exp)
+                exp = (self.quantifiers[1], shape, max_str)
+                self.max_exp.append(exp)
         
         # Predicates
         self.color_predicates = ["color=red", "color=blue", "color=green"]
@@ -812,6 +828,7 @@ def eval_shape(grid, fol_exp):
 
 def eval_color_loc(grid, fol_exp):
     """ Returns list of expressions with valid color-location predicates
+        The color-location predicates match medium difficulty templates only
     
     Args:
         grid (list): the grid in list form
@@ -849,9 +866,10 @@ def eval_color_loc(grid, fol_exp):
             limit = 0
             if direction == "top2" or direction == "top3" or direction == "left2" or direction == "left3":
                 index = 0
+                limit = int(direction[len(direction) - 1])
             elif direction == "bottom2" or direction == "bottom3" or direction == "right2" or direction == "right3":
-                index = len(grid[0])
-            limit = int(direction[len(direction) - 1])
+                index = len(grid[0]) - 1
+                limit = index - int(direction[len(direction) - 1])
             direction = direction[:len(direction) - 1]
             
             # Check row by row, until you reach the limit
@@ -862,20 +880,14 @@ def eval_color_loc(grid, fol_exp):
                         if quantifier == "All":
                             if num == grid[index][j][0] and shape == grid[index][j][2]:
                                 if color != grid[index][j][1]: # counterexample
-                                    #print("failed on", quantifier, shape, num, color, direction, str(limit), end=", ")
-                                    #print(grid[index][j], "at", index)
                                     all_check = False
                                     break
                             elif num == "even" and int(grid[index][j][0]) % 2 == 0 and shape == grid[index][j][2]:
                                 if color != grid[index][j][1]:
-                                    #print("failed on", quantifier, shape, num, color, direction, str(limit), end=", ")
-                                    #print(grid[index][j], "at", index)
                                     all_check = False
                                     break
                             elif num == "odd" and int(grid[index][j][0]) % 2 == 1 and shape == grid[index][j][2]:
                                 if color != grid[index][j][1]:
-                                    #print("failed on", quantifier, shape, num, color, direction, str(limit), end=", ")
-                                    #print(grid[index][j], "at", index)
                                     all_check = False
                                     break
                         else:
@@ -926,33 +938,76 @@ def eval_color_loc(grid, fol_exp):
                         #debug.write("\n")
                         if quantifier == "All":
                             if num == grid[index][j][0] and shape == grid[index][j][2]:
-                                #print("round 2 failed on", quantifier, shape, num, color, direction, str(limit), end=", ")
-                                #print(grid[index][j], "at", index)
                                 all_check = False
                                 break
                             elif num == "even" and int(grid[index][j][0]) % 2 == 0 and shape == grid[index][j][2]:
-                                #print("round 2 failed on", quantifier, shape, num, color, direction, str(limit), end=", ")
-                                #print(grid[index][j], "at", index)
                                 all_check = False
                                 break
                             elif num == "odd" and int(grid[index][j][0]) % 2 == 1 and shape == grid[index][j][2]:
-                                #print("round 2 failed on", quantifier, shape, num, color, direction, str(limit), end=", ")
-                                #print(grid[index][j], "at", index)
                                 all_check = False
                                 break
                     index += 1
             elif direction == "bottom":
-                # TO-DO
                 # Backwards algorithm to "top"
                 # Start at len(grid[0]) and work your way backwards towards len(grid[0]) - limit
-                all_check = False
+                # Check for the validity of the color clause
+                while index > limit:
+                    for j in range(len(grid[0])):
+                        if quantifier == "All":
+                            if num == grid[index][j][0] and shape == grid[index][j][2]:
+                                if color != grid[index][j][1]: # counterexample
+                                    all_check = False
+                                    break
+                            elif num == "even" and int(grid[index][j][0]) % 2 == 0 and shape == grid[index][j][2]:
+                                if color != grid[index][j][1]:
+                                    all_check = False
+                                    break
+                            elif num == "odd" and int(grid[index][j][0]) % 2 == 1 and shape == grid[index][j][2]:
+                                if color != grid[index][j][1]:
+                                    all_check = False
+                                    break
+                        else:
+                            if num == grid[index][j][0]:
+                                if color == grid[index][j][1] and shape == grid[index][j][2]: # Example
+                                    some_check = True
+                                    break
+                            elif num == "even" and int(grid[index][j][0]) % 2 == 0 and shape == grid[index][j][2]:
+                                if color == grid[index][j][1]:
+                                    some_check = True
+                                    break
+                            elif num == "odd" and int(grid[index][j][0]) % 2 == 1 and shape == grid[index][j][2]:
+                                if color == grid[index][j][1]:
+                                    some_check = True
+                                    break
+                        
+                    if not all_check or some_check:
+                        all_check = True
+                        break
+                    
+                    index -= 1
+                
+                # Check validity of location clause
+                # Here, if we are out of bounds, but we reach a cell with a number and shape match, we immediately break
+                while index >= 0:
+                    if not all_check or some_check:
+                        break
+                    for j in range(len(grid[0])):
+                        if quantifier == "All":
+                            if num == grid[index][j][0] and shape == grid[index][j][2]:
+                                all_check = False
+                                break
+                            elif num == "even" and int(grid[index][j][0]) % 2 == 0 and shape == grid[index][j][2]:
+                                all_check = False
+                                break
+                            elif num == "odd" and int(grid[index][j][0]) % 2 == 1 and shape == grid[index][j][2]:
+                                all_check = False
+                                break
+                    index -= 1
             elif direction == "left":
-                # TO-DO
                 # Similar algorithm to "top"
-                all_check = False
-                """
-                for j in range(len(grid[0])):
-                    while index < limit:
+                # Check for the validity of the color clause
+                while index < limit:    
+                    for j in range(len(grid[0])):
                         if quantifier == "All":
                             if num == grid[j][index][0] and shape == grid[j][index][2]:
                                 if color != grid[j][index][1]: # counterexample
@@ -979,24 +1034,90 @@ def eval_color_loc(grid, fol_exp):
                                 if color == grid[j][index][1]:
                                     some_check = True
                                     break
+                                
+                    index += 1
                         
-                        index += 1
-                        
-                        if not all_check or some_check:
+                    if not all_check or some_check:
+                        break
+                
+                # Check validity of location clause
+                # Here, if we are out of bounds, but we reach a cell with a number and shape match, we immediately break
+                while index < len(grid[0]):
+                    for j in range(len(grid[0])):
+                        if some_check:
                             break
-                """
+                        if quantifier == "All":
+                            if num == grid[j][index][0] and shape == grid[j][index][2]:
+                                all_check = False
+                                break
+                            elif num == "even" and int(grid[j][index][0]) % 2 == 0 and shape == grid[j][index][2]:
+                                all_check = False
+                                break
+                            elif num == "odd" and int(grid[j][index][0]) % 2 == 1 and shape == grid[j][index][2]:
+                                all_check = False
+                                break
+                        
+                    index += 1
             elif direction == "right":
-                # TO-DO
-                # Similar algorithm to bottom
-                all_check = False
+                # Similar algorithm to bottom and left
+                while index > limit:    
+                    for j in range(len(grid[0])):
+                        if quantifier == "All":
+                            if num == grid[j][index][0] and shape == grid[j][index][2]:
+                                if color != grid[j][index][1]: # counterexample
+                                    all_check = False
+                                    break
+                            elif num == "even" and int(grid[j][index][0]) % 2 == 0 and shape == grid[j][index][2]:
+                                if color != grid[j][index][1]:
+                                    all_check = False
+                                    break
+                            elif num == "odd" and int(grid[j][index][0]) % 2 == 1 and shape == grid[j][index][2]:
+                                if color != grid[j][index][1]:
+                                    all_check = False
+                                    break
+                        else:
+                            if num == grid[j][index][0]:
+                                if color == grid[j][index][1] and shape == grid[j][index][2]: # Example
+                                    some_check = True
+                                    break
+                            elif num == "even" and int(grid[j][index][0]) % 2 == 0 and shape == grid[j][index][2]:
+                                if color == grid[j][index][1]:
+                                    some_check = True
+                                    break
+                            elif num == "odd" and int(grid[j][index][0]) % 2 == 1 and shape == grid[j][index][2]:
+                                if color == grid[j][index][1]:
+                                    some_check = True
+                                    break
+                                
+                    index -= 1
+                        
+                    if not all_check or some_check:
+                        break
+                
+                # Check validity of location clause
+                # Here, if we are out of bounds, but we reach a cell with a number and shape match, we immediately break
+                while index >= 0:
+                    for j in range(len(grid[0])):
+                        if some_check:
+                            break
+                        if quantifier == "All":
+                            if num == grid[j][index][0] and shape == grid[j][index][2]:
+                                all_check = False
+                                break
+                            elif num == "even" and int(grid[j][index][0]) % 2 == 0 and shape == grid[j][index][2]:
+                                all_check = False
+                                break
+                            elif num == "odd" and int(grid[j][index][0]) % 2 == 1 and shape == grid[j][index][2]:
+                                all_check = False
+                                break
+                        
+                    index -= 1
             
             if all_check and quantifier == "All":
-                #print("appending", quantifier, shape, num, color, direction, str(limit))
                 new_exp = list(shape_num_exp)
                 new_exp.append(fol_exp.color_loc_predicates[i])
                 exp.append(tuple(new_exp))
             elif some_check and quantifier == "Some":
-                #print("appending", quantifier, shape, num, color, direction, str(limit))
                 new_exp = list(shape_num_exp)
                 new_exp.append(fol_exp.color_loc_predicates[i])
                 exp.append(tuple(new_exp))
