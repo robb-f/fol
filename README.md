@@ -18,6 +18,7 @@ categorized by difficulty level)
 
 ## Usage
 Just make sure you have python3 installed. Clone the repository, and run
+
     python3 grid_to_fol.py
 
 We plan for the grid to be 5x5, so when asked for the size of the grid, you
