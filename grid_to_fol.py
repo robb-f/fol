@@ -9,7 +9,7 @@ class FOL:
         self.shapes = ["triangles", "squares", "circles"]
         self.grid = grid
         
-        # Color expressions
+        # Easy 2 and 6
         self.color_exp = list()
         for color in self.colors:
             exp = (self.quantifiers[0], color)
@@ -17,7 +17,7 @@ class FOL:
             exp = (self.quantifiers[1], color)
             self.color_exp.append(exp)
             
-        # Shape expressions
+        # Easy 1 and 3 | Medium 1
         self.shape_exp = list()
         for shape in self.shapes:
             exp = (self.quantifiers[0], shape)
@@ -25,7 +25,7 @@ class FOL:
             exp = (self.quantifiers[1], shape)
             self.shape_exp.append(exp)
         
-        # Number expressions
+        # Easy 4 and 5 | Medium 1
         self.num_exp = list()
         for num in self.numbers:
             exp = (self.quantifiers[0], num)
@@ -41,33 +41,7 @@ class FOL:
         exp = (self.quantifiers[1], "odd")
         self.num_exp.append(exp)
         
-        # Color-Shape expressions
-        self.color_shape_exp = list()
-        for shape in self.shapes:
-            for color in self.colors:
-                exp = (self.quantifiers[0], color, shape)
-                self.color_shape_exp.append(exp)
-                exp = (self.quantifiers[1], color, shape)
-                self.color_shape_exp.append(exp)
-        
-        # Color-Number expressions
-        self.color_num_exp = list()
-        for color in self.colors:
-            for num in self.numbers:
-                exp = (self.quantifiers[0], color, num)
-                self.color_num_exp.append(exp)
-                exp = (self.quantifiers[1], color, num)
-                self.color_num_exp.append(exp)
-            exp = (self.quantifiers[0], color, "even")
-            self.color_num_exp.append(exp)
-            exp = (self.quantifiers[1], color, "even")
-            self.color_num_exp.append(exp)
-            exp = (self.quantifiers[0], color, "odd")
-            self.color_num_exp.append(exp)
-            exp = (self.quantifiers[1], color, "odd")
-            self.color_num_exp.append(exp)
-        
-        # Shape-Number expressions
+        # Medium 1
         self.shape_num_exp = list()
         for shape in self.shapes:
             for num in self.numbers:
@@ -83,8 +57,8 @@ class FOL:
             self.shape_num_exp.append(exp)
             exp = (self.quantifiers[1], shape, "odd")
             self.shape_num_exp.append(exp)
-            
-        # Min-Max Value expressions
+        
+        # Medium 3
         self.min_exp = list()
         self.max_exp = list()
         for shape in self.shapes:
@@ -100,7 +74,7 @@ class FOL:
                 exp = (self.quantifiers[1], shape, max_str)
                 self.max_exp.append(exp)
         
-        # Predicates
+        # All Predicates
         self.color_predicates = ["color=red", "color=blue", "color=green"]
         self.num_predicates = ["".join(["num=", str(i)]) for i in self.numbers]
         self.even_odd = ["even=TRUE", "odd=TRUE"]
@@ -984,291 +958,14 @@ def medium2(grid, fol_exp):
                 
     return exp
 
-def eval_color(grid, fol_exp):
-    """ Returns list of expressions with valid color predicates
-    
-    Args:
-        grid (list): the grid in list form
-        fol_exp (FOL): the FOL expressions object instance
-    
-    Returns:
-        list: valid expressions with color predicates
-    """
+def medium3(grid, fol_exp):
     exp = list()
     
-    # SHAPE-NUMBER EXPRESSIONS
-    for shape_num_exp in fol_exp.shape_num_exp:
-        for i in range(len(fol_exp.color_predicates)):
-            all_check = True
-            some_check = False
-            quantifier = shape_num_exp[0]
-            shape = shape_num_exp[1]
-            if shape == "triangles":
-                shape = "T"
-            elif shape == "squares":
-                shape = "S"
-            else:
-                shape = "C"
-            num = shape_num_exp[2]
-            color = fol_exp.color_predicates[i].split("color=")[1]
-            if color == "red":
-                color = "R"
-            elif color == "blue":
-                color = "B"
-            else:
-                color = "G"
-            
-            for row in grid:
-                for col in row:
-                    if quantifier == "All":
-                        if num == col[0] and shape == col[2]:
-                            if color != col[1]: # Counterexample
-                                all_check = False
-                                break
-                        elif num == "even" and int(col[0]) % 2 == 0 and shape == col[2]:
-                            if color != col[1]:
-                                all_check = False
-                                break
-                        elif num == "odd" and int(col[0]) % 2 == 1 and shape == col[2]:
-                            if color != col[1]:
-                                all_check = False
-                                break
-                    else:
-                        if num == col[0]:
-                            if color == col[1] and shape == col[2]: # Example
-                                some_check = True
-                                break
-                        elif num == "even" and int(col[0]) % 2 == 0 and shape == col[2]:
-                            if color == col[1]:
-                                some_check = True
-                                break
-                        elif num == "odd" and int(col[0]) % 2 == 1 and shape == col[2]:
-                            if color == col[1]:
-                                some_check = True
-                                break
-                    
-                if not all_check or some_check:
-                    break
-            
-            if all_check and quantifier == "All":
-                new_exp = list(shape_num_exp)
-                new_exp.append(fol_exp.color_predicates[i])
-                exp.append(tuple(new_exp))
-            elif some_check and quantifier == "Some":
-                new_exp = list(shape_num_exp)
-                new_exp.append(fol_exp.color_predicates[i])
-                exp.append(tuple(new_exp))
-    
-    return exp
-
-def eval_num(grid, fol_exp):
-    """ Returns list of expressions with valid number predicates
-    
-    Args:
-        grid (list): the grid in list form
-        fol_exp (FOL): the FOL expressions object instance
-    
-    Returns:
-        list: valid expressions with number predicates
-    """
-    exp = list()
-    
-    # COLOR-SHAPE EXPRESSIONS
-    for color_shape_exp in fol_exp.color_shape_exp:
-        for i in range(len(fol_exp.num_predicates)):
-            all_check = True
-            some_check = False
-            quantifier = color_shape_exp[0]
-            color = color_shape_exp[1]
-            if color == "red":
-                color = "R"
-            elif color == "blue":
-                color = "B"
-            else:
-                color = "G"
-            shape = color_shape_exp[2]
-            if shape == "triangles":
-                shape = "T"
-            elif shape == "squares":
-                shape = "S"
-            else:
-                shape = "C"
-            num = fol_exp.num_predicates[i].split("num=")[1]
-            
-            for row in grid:
-                for col in row:
-                    if quantifier == "All":
-                        if color == col[1] and shape == col[2]:
-                            if num != col[0]: # Counterexample
-                                all_check = False
-                                break
-                    else:
-                        if color == col[1] and shape == col[2]:
-                            if num == col[0]: # Example
-                                some_check = True
-                                break
-                    
-                if not all_check or some_check:
-                    break
-            
-            if all_check and quantifier == "All":
-                new_exp = list(color_shape_exp)
-                new_exp.append(fol_exp.num_predicates[i])
-                exp.append(tuple(new_exp))
-            elif some_check and quantifier == "Some":
-                new_exp = list(color_shape_exp)
-                new_exp.append(fol_exp.num_predicates[i])
-                exp.append(tuple(new_exp))
-        
-        for i in range(len(fol_exp.even_odd)):
-            all_check = True
-            some_check = False
-            quantifier = color_shape_exp[0]
-            color = color_shape_exp[1]
-            if color == "red":
-                color = "R"
-            elif color == "blue":
-                color = "B"
-            else:
-                color = "G"
-            shape = color_shape_exp[2]
-            if shape == "triangles":
-                shape = "T"
-            elif shape == "squares":
-                shape = "S"
-            else:
-                shape = "C"
-            num = fol_exp.even_odd[i]
-
-            for row in grid:
-                for col in row:
-                    if quantifier == "All":
-                        if color == col[1] and shape == col[2]:
-                            if num == "even=TRUE" and int(col[0]) % 2 != 0: # Counterexample
-                                all_check = False
-                                break
-                            elif num == "odd=TRUE" and int(col[0]) % 2 != 1:
-                                all_check = False
-                                break
-                    else:
-                        if color == col[1] and shape == col[2]:
-                            if num == "even=TRUE" and int(col[0]) % 2 == 0: # Example
-                                some_check = True
-                                break
-                            elif num == "odd=TRUE" and int(col[0]) % 2 == 1:
-                                some_check = True
-                                break
-                    
-                if not all_check or some_check:
-                    break
-            
-            if all_check and quantifier == "All":
-                new_exp = list(color_shape_exp)
-                new_exp.append(fol_exp.even_odd[i])
-                exp.append(tuple(new_exp))
-            elif some_check and quantifier == "Some":
-                new_exp = list(color_shape_exp)
-                new_exp.append(fol_exp.even_odd[i])
-                exp.append(tuple(new_exp))
-    
-    return exp
-
-def eval_shape(grid, fol_exp):
-    """ Returns list of expressions with valid shape predicates
-    
-    Args:
-        grid (list): the grid in list form
-        fol_exp (FOL): the FOL expressions object instance
-    
-    Returns:
-        list: valid expressions with shape predicates
-    """
-    exp = list()
-    
-    # COLOR-NUMBER EXPRESSIONS
-    for color_num_exp in fol_exp.color_num_exp:
-        for i in range(len(fol_exp.color_predicates)):
-            all_check = True
-            some_check = False
-            quantifier = color_num_exp[0]
-            color = color_num_exp[1]
-            if color == "red":
-                color = "R"
-            elif color == "blue":
-                color = "B"
-            else:
-                color = "G"
-            num = color_num_exp[2]
-            shape = fol_exp.shape_predicates[i].split("shape=")[1]
-            if shape == "triangle":
-                shape = "T"
-            elif shape == "square":
-                shape = "S"
-            else:
-                shape = "C"            
-            
-            for row in grid:
-                for col in row:
-                    if quantifier == "All":
-                        if num == col[0] and color == col[1]:
-                            if shape != col[2]: # Counterexample
-                                all_check = False
-                                break
-                        elif num == "even" and int(col[0]) % 2 == 0 and color == col[1]:
-                            if shape != col[2]:
-                                all_check = False
-                                break
-                        elif num == "odd" and int(col[0]) % 2 == 1 and color == col[1]:
-                            if shape != col[2]:
-                                all_check = False
-                                break
-                    else:
-                        if num == col[0]:
-                            if color == col[1] and shape == col[2]: # Example
-                                some_check = True
-                                break
-                        elif num == "even" and int(col[0]) % 2 == 0 and color == col[1]:
-                            if shape == col[2]:
-                                some_check = True
-                                break
-                        elif num == "odd" and int(col[0]) % 2 == 1 and color == col[1]:
-                            if shape == col[2]:
-                                some_check = True
-                                break
-                    
-                if not all_check or some_check:
-                    break
-            
-            if all_check and quantifier == "All":
-                new_exp = list(color_num_exp)
-                new_exp.append(fol_exp.shape_predicates[i])
-                exp.append(tuple(new_exp))
-            elif some_check and quantifier == "Some":
-                new_exp = list(color_num_exp)
-                new_exp.append(fol_exp.shape_predicates[i])
-                exp.append(tuple(new_exp))
-    
-    return exp
-
-def eval_color_loc(grid, fol_exp):
-    """ Returns list of expressions with valid color-location predicates
-        The color-location predicates match medium difficulty templates only
-    
-    Args:
-        grid (list): the grid in list form
-        fol_exp (FOL): the FOL expressions object instance
-    
-    Returns:
-        list: valid expressions with shape predicates
-    """
-    exp = list()
-    #debug = open("debug.txt", mode='w')
-    
-    # SHAPE-NUMBER EXPRESSIONS
-    for shape_num_exp in fol_exp.shape_num_exp:
+    for shape_num_exp in fol_exp.min_exp:
         for i in range(len(fol_exp.color_loc_predicates)):
             all_check = True
             some_check = False
+            min_bool = True
             quantifier = shape_num_exp[0]
             shape = shape_num_exp[1]
             if shape == "triangles":
@@ -1278,6 +975,10 @@ def eval_color_loc(grid, fol_exp):
             else:
                 shape = "C"
             num = shape_num_exp[2]
+            if num[:4] == "min=":
+                num = num.split("min=")[1]
+            else:
+                num = num.split("max=")[1]
             color = fol_exp.color_loc_predicates[i][0].split("color=")[1]
             if color == "red":
                 color = "R"
@@ -1302,51 +1003,32 @@ def eval_color_loc(grid, fol_exp):
                 while index < limit:
                     for j in range(len(grid[0])):
                         if quantifier == "All":
-                            if num == grid[index][j][0] and shape == grid[index][j][2]:
-                                if color != grid[index][j][1]: # counterexample
-                                    all_check = False
-                                    break
-                            elif num == "even" and int(grid[index][j][0]) % 2 == 0 and shape == grid[index][j][2]:
-                                if color != grid[index][j][1]:
-                                    all_check = False
-                                    break
-                            elif num == "odd" and int(grid[index][j][0]) % 2 == 1 and shape == grid[index][j][2]:
-                                if color != grid[index][j][1]:
-                                    all_check = False
-                                    break
+                            if min_bool:
+                                if grid[index][j][0] >= num and shape == grid[index][j][2]:
+                                    if color != grid[index][j][1]: # counterexample
+                                        all_check = False
+                                        break
+                            else:
+                                if grid[index][j][0] <= num and shape == grid[index][j][2]:
+                                    if color != grid[index][j][1]: # counterexample
+                                        all_check = False
+                                        break
                         else:
-                            if num == grid[index][j][0]:
-                                if color == grid[index][j][1] and shape == grid[index][j][2]: # Example
-                                    some_check = True
-                                    break
-                            elif num == "even" and int(grid[index][j][0]) % 2 == 0 and shape == grid[index][j][2]:
-                                if color == grid[index][j][1]:
-                                    some_check = True
-                                    break
-                            elif num == "odd" and int(grid[index][j][0]) % 2 == 1 and shape == grid[index][j][2]:
-                                if color == grid[index][j][1]:
-                                    some_check = True
-                                    break
+                            if min_bool:
+                                if grid[index][j][0] >= num:
+                                    if color == grid[index][j][1] and shape == grid[index][j][2]: # Example
+                                        some_check = True
+                                        break
+                            else:
+                                if grid[index][j][0] <= num:
+                                    if color == grid[index][j][1] and shape == grid[index][j][2]: # Example
+                                        some_check = True
+                                        break
                         
                     if not all_check or some_check:
                         break
                     
                     index += 1
-                
-                #debug.write("===== ")
-                #debug.write(quantifier)
-                #debug.write(" ")
-                #debug.write(shape)
-                #debug.write(" ")
-                #debug.write(num)
-                #debug.write(" ")
-                #debug.write(color)
-                #debug.write(" ")
-                #debug.write(direction)
-                #debug.write(" ")
-                #debug.write(str(limit))
-                #debug.write(" ")
-                #debug.write(" =====\n")
                 
                 # Check validity of location clause
                 # Here, if we are out of bounds, but we reach a cell with a number and shape match, we immediately break
@@ -1355,21 +1037,15 @@ def eval_color_loc(grid, fol_exp):
                         if some_check:
                             break
                         
-                        #debug.write("index = ")
-                        #debug.write(str(index))
-                        #debug.write("\n")
-                        #debug.write(grid[index][j])
-                        #debug.write("\n")
                         if quantifier == "All":
-                            if num == grid[index][j][0] and shape == grid[index][j][2]:
-                                all_check = False
-                                break
-                            elif num == "even" and int(grid[index][j][0]) % 2 == 0 and shape == grid[index][j][2]:
-                                all_check = False
-                                break
-                            elif num == "odd" and int(grid[index][j][0]) % 2 == 1 and shape == grid[index][j][2]:
-                                all_check = False
-                                break
+                            if min_bool:
+                                if grid[index][j][0] >= num and shape == grid[index][j][2]:
+                                    all_check = False
+                                    break
+                            else:
+                                if grid[index][j][0] <= num and shape == grid[index][j][2]:
+                                    all_check = False
+                                    break
                     index += 1
             elif direction == "bottom":
                 # Backwards algorithm to "top"
@@ -1378,31 +1054,27 @@ def eval_color_loc(grid, fol_exp):
                 while index > limit:
                     for j in range(len(grid[0])):
                         if quantifier == "All":
-                            if num == grid[index][j][0] and shape == grid[index][j][2]:
-                                if color != grid[index][j][1]: # counterexample
-                                    all_check = False
-                                    break
-                            elif num == "even" and int(grid[index][j][0]) % 2 == 0 and shape == grid[index][j][2]:
-                                if color != grid[index][j][1]:
-                                    all_check = False
-                                    break
-                            elif num == "odd" and int(grid[index][j][0]) % 2 == 1 and shape == grid[index][j][2]:
-                                if color != grid[index][j][1]:
-                                    all_check = False
-                                    break
+                            if min_bool:
+                                if grid[index][j][0] >= num and shape == grid[index][j][2]:
+                                    if color != grid[index][j][1]: # counterexample
+                                        all_check = False
+                                        break
+                            else:
+                                if grid[index][j][0] <= num and shape == grid[index][j][2]:
+                                    if color != grid[index][j][1]: # counterexample
+                                        all_check = False
+                                        break
                         else:
-                            if num == grid[index][j][0]:
-                                if color == grid[index][j][1] and shape == grid[index][j][2]: # Example
-                                    some_check = True
-                                    break
-                            elif num == "even" and int(grid[index][j][0]) % 2 == 0 and shape == grid[index][j][2]:
-                                if color == grid[index][j][1]:
-                                    some_check = True
-                                    break
-                            elif num == "odd" and int(grid[index][j][0]) % 2 == 1 and shape == grid[index][j][2]:
-                                if color == grid[index][j][1]:
-                                    some_check = True
-                                    break
+                            if min_bool:
+                                if grid[index][j][0] >= num:
+                                    if color == grid[index][j][1] and shape == grid[index][j][2]: # Example
+                                        some_check = True
+                                        break
+                            else:
+                                if grid[index][j][0] <= num:
+                                    if color == grid[index][j][1] and shape == grid[index][j][2]: # Example
+                                        some_check = True
+                                        break
                         
                     if not all_check or some_check:
                         all_check = True
@@ -1417,15 +1089,14 @@ def eval_color_loc(grid, fol_exp):
                         break
                     for j in range(len(grid[0])):
                         if quantifier == "All":
-                            if num == grid[index][j][0] and shape == grid[index][j][2]:
-                                all_check = False
-                                break
-                            elif num == "even" and int(grid[index][j][0]) % 2 == 0 and shape == grid[index][j][2]:
-                                all_check = False
-                                break
-                            elif num == "odd" and int(grid[index][j][0]) % 2 == 1 and shape == grid[index][j][2]:
-                                all_check = False
-                                break
+                            if min_bool:
+                                if grid[index][j][0] >= num and shape == grid[index][j][2]:
+                                    all_check = False
+                                    break
+                            else:
+                                if grid[index][j][0] <= num and shape == grid[index][j][2]:
+                                    all_check = False
+                                    break
                     index -= 1
             elif direction == "left":
                 # Similar algorithm to "top"
@@ -1433,31 +1104,27 @@ def eval_color_loc(grid, fol_exp):
                 while index < limit:    
                     for j in range(len(grid[0])):
                         if quantifier == "All":
-                            if num == grid[j][index][0] and shape == grid[j][index][2]:
-                                if color != grid[j][index][1]: # counterexample
-                                    all_check = False
-                                    break
-                            elif num == "even" and int(grid[j][index][0]) % 2 == 0 and shape == grid[j][index][2]:
-                                if color != grid[j][index][1]:
-                                    all_check = False
-                                    break
-                            elif num == "odd" and int(grid[j][index][0]) % 2 == 1 and shape == grid[j][index][2]:
-                                if color != grid[j][index][1]:
-                                    all_check = False
-                                    break
+                            if min_bool:
+                                if grid[j][index][0] >= num and shape == grid[j][index][2]:
+                                    if color != grid[j][index][1]: # counterexample
+                                        all_check = False
+                                        break
+                            else:
+                                if grid[j][index][0] <= num and shape == grid[j][index][2]:
+                                    if color != grid[j][index][1]: # counterexample
+                                        all_check = False
+                                        break
                         else:
-                            if num == grid[j][index][0]:
-                                if color == grid[j][index][1] and shape == grid[j][index][2]: # Example
-                                    some_check = True
-                                    break
-                            elif num == "even" and int(grid[j][index][0]) % 2 == 0 and shape == grid[j][index][2]:
-                                if color == grid[j][index][1]:
-                                    some_check = True
-                                    break
-                            elif num == "odd" and int(grid[j][index][0]) % 2 == 1 and shape == grid[j][index][2]:
-                                if color == grid[j][index][1]:
-                                    some_check = True
-                                    break
+                            if min_bool:
+                                if grid[j][index][0] >= num:
+                                    if color == grid[j][index][1] and shape == grid[j][index][2]: # Example
+                                        some_check = True
+                                        break
+                            else:
+                                if grid[j][index][0] <= num:
+                                    if color == grid[j][index][1] and shape == grid[j][index][2]: # Example
+                                        some_check = True
+                                        break
                                 
                     index += 1
                         
@@ -1471,15 +1138,14 @@ def eval_color_loc(grid, fol_exp):
                         if some_check:
                             break
                         if quantifier == "All":
-                            if num == grid[j][index][0] and shape == grid[j][index][2]:
-                                all_check = False
-                                break
-                            elif num == "even" and int(grid[j][index][0]) % 2 == 0 and shape == grid[j][index][2]:
-                                all_check = False
-                                break
-                            elif num == "odd" and int(grid[j][index][0]) % 2 == 1 and shape == grid[j][index][2]:
-                                all_check = False
-                                break
+                            if min_bool:
+                                if grid[j][index][0] >= num and shape == grid[j][index][2]:
+                                    all_check = False
+                                    break
+                            else:
+                                if grid[j][index][0] <= num and shape == grid[j][index][2]:
+                                    all_check = False
+                                    break
                         
                     index += 1
             elif direction == "right":
@@ -1487,31 +1153,27 @@ def eval_color_loc(grid, fol_exp):
                 while index > limit:    
                     for j in range(len(grid[0])):
                         if quantifier == "All":
-                            if num == grid[j][index][0] and shape == grid[j][index][2]:
-                                if color != grid[j][index][1]: # counterexample
-                                    all_check = False
-                                    break
-                            elif num == "even" and int(grid[j][index][0]) % 2 == 0 and shape == grid[j][index][2]:
-                                if color != grid[j][index][1]:
-                                    all_check = False
-                                    break
-                            elif num == "odd" and int(grid[j][index][0]) % 2 == 1 and shape == grid[j][index][2]:
-                                if color != grid[j][index][1]:
-                                    all_check = False
-                                    break
+                            if min_bool:
+                                if grid[j][index][0] >= num and shape == grid[j][index][2]:
+                                    if color != grid[j][index][1]: # counterexample
+                                        all_check = False
+                                        break
+                            else:
+                                if grid[j][index][0] <= num and shape == grid[j][index][2]:
+                                    if color != grid[j][index][1]: # counterexample
+                                        all_check = False
+                                        break
                         else:
-                            if num == grid[j][index][0]:
-                                if color == grid[j][index][1] and shape == grid[j][index][2]: # Example
-                                    some_check = True
-                                    break
-                            elif num == "even" and int(grid[j][index][0]) % 2 == 0 and shape == grid[j][index][2]:
-                                if color == grid[j][index][1]:
-                                    some_check = True
-                                    break
-                            elif num == "odd" and int(grid[j][index][0]) % 2 == 1 and shape == grid[j][index][2]:
-                                if color == grid[j][index][1]:
-                                    some_check = True
-                                    break
+                            if min_bool:
+                                if grid[j][index][0] >= num:
+                                    if color == grid[j][index][1] and shape == grid[j][index][2]: # Example
+                                        some_check = True
+                                        break
+                            else:
+                                if grid[j][index][0] <= num:
+                                    if color == grid[j][index][1] and shape == grid[j][index][2]: # Example
+                                        some_check = True
+                                        break
                                 
                     index -= 1
                         
@@ -1525,15 +1187,14 @@ def eval_color_loc(grid, fol_exp):
                         if some_check:
                             break
                         if quantifier == "All":
-                            if num == grid[j][index][0] and shape == grid[j][index][2]:
-                                all_check = False
-                                break
-                            elif num == "even" and int(grid[j][index][0]) % 2 == 0 and shape == grid[j][index][2]:
-                                all_check = False
-                                break
-                            elif num == "odd" and int(grid[j][index][0]) % 2 == 1 and shape == grid[j][index][2]:
-                                all_check = False
-                                break
+                            if min_bool:
+                                if grid[j][index][0] >= num and shape == grid[j][index][2]:
+                                    all_check = False
+                                    break
+                            else:
+                                if grid[j][index][0] <= num and shape == grid[j][index][2]:
+                                    all_check = False
+                                    break
                         
                     index -= 1
             
@@ -1547,7 +1208,7 @@ def eval_color_loc(grid, fol_exp):
                 exp.append(tuple(new_exp))
                 
     return exp
-
+    
 def write_to_file(expression_file, count, expressions):
     """ Helper function for write_expressions()
     
@@ -1646,8 +1307,10 @@ def generate_expressions(grid):
     medium_expressions = list()
     exp_med1 = medium1(grid, fol_exp)
     exp_med2 = medium2(grid, fol_exp)
+    exp_med3 = medium3(grid, fol_exp)
     medium_expressions.append(exp_med1)
     medium_expressions.append(exp_med2)
+    medium_expressions.append(exp_med3)
     
     return easy_expressions, medium_expressions
 
