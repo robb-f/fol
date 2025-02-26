@@ -14,6 +14,7 @@ class FOL:
         for color in self.colors:
             exp = (self.quantifiers[0], color)
             self.color_exp.append(exp)
+            # TO-DO: remove this and remove if quantifier != "All" check
             exp = (self.quantifiers[1], color)
             self.color_exp.append(exp)
             
@@ -22,6 +23,7 @@ class FOL:
         for shape in self.shapes:
             exp = (self.quantifiers[0], shape)
             self.shape_exp.append(exp)
+            # TO-DO: remove this and remove if quantifier != "All" check
             exp = (self.quantifiers[1], shape)
             self.shape_exp.append(exp)
         
@@ -30,14 +32,17 @@ class FOL:
         for num in self.numbers:
             exp = (self.quantifiers[0], num)
             self.num_exp.append(exp)
+            # TO-DO: remove this and remove if quantifier != "All" check
             exp = (self.quantifiers[1], num)
             self.num_exp.append(exp)
         exp = (self.quantifiers[0], "even")
         self.num_exp.append(exp)
+        # TO-DO: remove this and remove if quantifier != "All" check
         exp = (self.quantifiers[1], "even")
         self.num_exp.append(exp)
         exp = (self.quantifiers[0], "odd")
         self.num_exp.append(exp)
+        # TO-DO: remove this and remove if quantifier != "All" check
         exp = (self.quantifiers[1], "odd")
         self.num_exp.append(exp)
         
@@ -47,32 +52,36 @@ class FOL:
             for num in self.numbers:
                 exp = (self.quantifiers[0], shape, num)
                 self.shape_num_exp.append(exp)
+                # TO-DO: remove this and remove if quantifier != "All" check
                 exp = (self.quantifiers[1], shape, num)
                 self.shape_num_exp.append(exp)
             exp = (self.quantifiers[0], shape, "even")
             self.shape_num_exp.append(exp)
+            # TO-DO: remove this and remove if quantifier != "All" check
             exp = (self.quantifiers[1], shape, "even")
             self.shape_num_exp.append(exp)
             exp = (self.quantifiers[0], shape, "odd")
             self.shape_num_exp.append(exp)
+            # TO-DO: remove this and remove if quantifier != "All" check
             exp = (self.quantifiers[1], shape, "odd")
             self.shape_num_exp.append(exp)
         
         # Medium 3
-        self.min_exp = list()
-        self.max_exp = list()
+        self.min_max_exp = list()
         for shape in self.shapes:
             for num in self.numbers:
                 min_str = "min=" + num
                 max_str = "max=" + num
                 exp = (self.quantifiers[0], shape, min_str)
-                self.min_exp.append(exp)
+                self.min_max_exp.append(exp)
                 exp = (self.quantifiers[0], shape, max_str)
-                self.max_exp.append(exp)
+                self.min_max_exp.append(exp)
+                # TO-DO: remove this and remove if quantifier != "All" check
                 exp = (self.quantifiers[1], shape, min_str)
-                self.min_exp.append(exp)
+                self.min_max_exp.append(exp)
+                # TO-DO: remove this and remove if quantifier != "All" check
                 exp = (self.quantifiers[1], shape, max_str)
-                self.max_exp.append(exp)
+                self.min_max_exp.append(exp)
         
         # All Predicates
         self.color_predicates = ["color=red", "color=blue", "color=green"]
@@ -801,7 +810,7 @@ def medium2(grid, fol_exp):
 def medium3(grid, fol_exp):
     exp = list()
     
-    for shape_num_exp in fol_exp.min_exp:
+    for shape_num_exp in fol_exp.min_max_exp:
         for i in range(len(fol_exp.color_loc_predicates)):
             quantifier = shape_num_exp[0]
             if quantifier != "All":
@@ -826,6 +835,7 @@ def medium3(grid, fol_exp):
             if num[:4] == "min=":
                 num = num.split("min=")[1]
             else:
+                min_bool = False
                 num = num.split("max=")[1]
             
             if color == "red":
