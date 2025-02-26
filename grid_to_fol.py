@@ -1004,6 +1004,34 @@ def medium3(grid, fol_exp):
                 exp.append(tuple(new_exp))
                 
     return exp
+
+def hard1(grid, fol_exp):
+    exp = list()
+    
+    # NO-OP
+    
+    return exp
+
+def hard2(grid, fol_exp):
+    exp = list()
+    
+    # NO-OP
+    
+    return exp
+
+def hard3(grid, fol_exp):
+    exp = list()
+    
+    # NO-OP
+    
+    return exp
+
+def hard4(grid, fol_exp):
+    exp = list()
+    
+    # NO-OP
+    
+    return exp
     
 def write_to_file(expression_file, count, expressions):
     """ Helper function for write_expressions()
@@ -1018,10 +1046,12 @@ def write_to_file(expression_file, count, expressions):
         template_print = ""
         if count == 0:
             template_print += "EASY TEMPLATE " + str(template_no) + "\n"
-            template_no += 1
         if count == 1:
             template_print += "MEDIUM TEMPLATE " + str(template_no) + "\n"
-            template_no += 1
+        if count == 2:
+            template_print += "HARD TEMPLATE " + str(template_no) + "\n"
+        
+        template_no += 1
         
         expression_file.write(template_print)
             
@@ -1108,7 +1138,18 @@ def generate_expressions(grid):
     medium_expressions.append(exp_med2)
     medium_expressions.append(exp_med3)
     
-    return easy_expressions, medium_expressions
+    # Hard Templates
+    hard_expressions = list()
+    exp_hard1 = hard1(grid, fol_exp)
+    exp_hard2 = hard2(grid, fol_exp)
+    exp_hard3 = hard3(grid, fol_exp)
+    exp_hard4 = hard4(grid, fol_exp)
+    hard_expressions.append(exp_hard1)
+    hard_expressions.append(exp_hard2)
+    hard_expressions.append(exp_hard3)
+    hard_expressions.append(exp_hard4)
+    
+    return easy_expressions, medium_expressions, hard_expressions
 
 
 if __name__ == "__main__":
