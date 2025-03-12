@@ -985,6 +985,7 @@ def hard1(grid, fol_exp):
             # 
             # This reasoning is adapted to hard2(), hard3(), and hard4()
             for row in grid:
+                # TO-DO: change row[4][x] to row[len(grid[0]) - 1][x]
                 if row[4][1] == color1 and row[4][2] == shape1:
                     all_check = False
                 if not all_check:
@@ -997,6 +998,8 @@ def hard1(grid, fol_exp):
             # column that satisfies the condition, so now we check for T -> T
             #
             # Don't check the last column to check RightOf() condition
+
+            # Change limit to len(grid[0]) - 1 for flexibility
             limit = 4
             for row in grid:
                 index = 0
