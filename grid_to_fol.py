@@ -3,7 +3,7 @@ import random
 class FOL:
     def __init__(self, grid):
         # Initialize base variables
-        self.quantifiers = ["All", "Some"]
+        self.quantifiers = ["All"]
         self.numbers = [str(i) for i in range(0, 10)]
         self.colors = ["red", "blue", "green"]
         self.shapes = ["triangles", "squares", "circles"]
@@ -52,6 +52,13 @@ class FOL:
                 self.min_max_exp.append(exp)
                 exp = (self.quantifiers[0], shape, max_str)
                 self.min_max_exp.append(exp)
+                
+        # Hard 1, 2, 3, & 4
+        self.shape_color_exp = list()
+        for shape in self.shapes:
+            for color in self.colors:
+                exp = (self.quantifiers[0], shape, color)
+                self.shape_color_exp.append(exp)
         
         # All Predicates
         self.color_predicates = ["color=red", "color=blue", "color=green"]
@@ -68,6 +75,14 @@ class FOL:
             for location in self.location_predicates:
                 predicate = (color, location)
                 self.color_loc_predicates.append(predicate)
+                
+        self.hard_one = list()
+        for shape in self.shapes:
+            for num in self.numbers:
+                min_str = "min=" + num
+                right_of = "RightOf"
+                exp = (shape, min_str, right_of)
+                self.hard_one.append(exp)
 
 def generate_grid(size):
     """ Generates a grid by creating a size by size matrix using a list.
@@ -139,9 +154,7 @@ def easy1(grid, fol_exp):
     exp = list()
     
     for shape_exp in fol_exp.shape_exp:
-        for i in range(len(fol_exp.color_predicates)):
-            quantifier = shape_exp[0]
-            
+        for i in range(len(fol_exp.color_predicates)):            
             all_check = True
             shape = shape_exp[1]
             color = fol_exp.color_predicates[i].split("color=")[1]
@@ -182,8 +195,6 @@ def easy2(grid, fol_exp):
     
     for color_exp in fol_exp.color_exp:
         for i in range(len(fol_exp.color_predicates)):
-            quantifier = color_exp[0]
-            
             all_check = True
             color = color_exp[1]
             shape = fol_exp.shape_predicates[i].split("shape=")[1]
@@ -224,8 +235,6 @@ def easy3(grid, fol_exp):
     
     for shape_exp in fol_exp.shape_exp:
         for i in range(len(fol_exp.num_predicates)):
-            quantifier = shape_exp[0]
-            
             all_check = True
             shape = shape_exp[1]
             num = fol_exp.num_predicates[i].split("num=")[1]
@@ -254,8 +263,6 @@ def easy3(grid, fol_exp):
         
         # Even-Odd
         for i in range(len(fol_exp.even_odd)):
-            quantifier = shape_exp[0]
-            
             all_check = True
             shape = shape_exp[1]
             if shape == "triangles":
@@ -291,8 +298,6 @@ def easy4(grid, fol_exp):
     
     for num_exp in fol_exp.num_exp:
         for i in range(len(fol_exp.color_predicates)):
-            quantifier = num_exp[0]
-            
             all_check = True
             num = num_exp[1]
             shape = fol_exp.shape_predicates[i].split("shape=")[1]
@@ -334,8 +339,6 @@ def easy5(grid, fol_exp):
     
     for num_exp in fol_exp.num_exp:
         for i in range(len(fol_exp.color_predicates)):
-            quantifier = num_exp[0]
-            
             all_check = True
             num = num_exp[1]
             color = fol_exp.color_predicates[i].split("color=")[1]
@@ -377,8 +380,6 @@ def easy6(grid, fol_exp):
     
     for color_exp in fol_exp.color_exp:
         for i in range(len(fol_exp.num_predicates)):
-            quantifier = color_exp[0]
-            
             all_check = True
             color = color_exp[1]
             num = fol_exp.num_predicates[i].split("num=")[1]
@@ -406,8 +407,6 @@ def easy6(grid, fol_exp):
         
         # Even-Odd
         for i in range(len(fol_exp.even_odd)):
-            quantifier = color_exp[0]
-            
             all_check = True
             color = color_exp[1]
             num = fol_exp.even_odd[i]
@@ -444,8 +443,6 @@ def medium1(grid, fol_exp):
     
     for shape_num_exp in fol_exp.shape_num_exp:
         for i in range(len(fol_exp.color_loc_predicates)):
-            quantifier = shape_num_exp[0]
-            
             all_check = True
             shape = shape_num_exp[1]
             num = shape_num_exp[2]
@@ -588,8 +585,6 @@ def medium2(grid, fol_exp):
     
     for shape_num_exp in fol_exp.shape_num_exp:
         for i in range(len(fol_exp.color_loc_predicates)):
-            quantifier = shape_num_exp[0]
-            
             all_check = True
             shape = shape_num_exp[1]
             num = shape_num_exp[2]
@@ -762,8 +757,6 @@ def medium3(grid, fol_exp):
     
     for shape_num_exp in fol_exp.min_max_exp:
         for i in range(len(fol_exp.color_loc_predicates)):
-            quantifier = shape_num_exp[0]
-            
             all_check = True
             min_bool = True
             shape = shape_num_exp[1]
@@ -956,8 +949,73 @@ def medium3(grid, fol_exp):
 def hard1(grid, fol_exp):
     exp = list()
     
-    # NO-OP
-    
+    for shape_color_exp in fol_exp.shape_color_exp:
+        for predicate in fol_exp.hard_one:
+            all_check = True
+            shape1 = shape_color_exp[1]
+            color1 = shape_color_exp[2]
+            shape2 = predicate[0]
+            min_val = predicate[1].split("min=")[1]
+            
+            if shape1 == "triangles":
+                shape1 = "T"
+            elif shape1 == "squares":
+                shape1 = "S"
+            else:
+                shape1 = "C"
+            
+            if shape2 == "triangles":
+                shape2 = "T"
+            elif shape2 == "squares":
+                shape2 = "S"
+            else:
+                shape2 = "C"
+            
+            if color1 == "red":
+                color1 = "R"
+            elif color1 == "blue":
+                color1 = "B"
+            else:
+                color1 = "G"
+            
+            # First, check if condition is present in the last column
+            # Reasoning: If there is a cell that exists on the right-most
+            # column, there cannot be another cell, and thus the implication
+            # becomes a T -> F scenario
+            # 
+            # This reasoning is adapted to hard2(), hard3(), and hard4()
+            for row in grid:
+                if row[4][1] == color1 and row[4][2] == shape1:
+                    all_check = False
+                if not all_check:
+                    break
+            
+            if not all_check:
+                break
+            
+            # If we're here, it's because there is no cell in the right-most
+            # column that satisfies the condition, so now we check for T -> T
+            #
+            # Don't check the last column to check RightOf() condition
+            limit = 4
+            for row in grid:
+                index = 0
+                while index < limit:
+                    if row[index][1] == color1 and row[index][2] == shape1:
+                        if row[index + 1][2] != shape2 or row[index + 1][0] < min_val:
+                            all_check = False
+                        if not all_check:
+                            break
+                    index += 1
+                
+                if not all_check:
+                    break
+        
+            if all_check:
+                new_exp = list(shape_color_exp)
+                new_exp.append(predicate)
+                exp.append(tuple(new_exp))
+        
     return exp
 
 def hard2(grid, fol_exp):
@@ -1032,6 +1090,20 @@ def write_to_file(expression_file, count, expressions):
                 splitter = color + location
                                 
                 expression_file.write(splitter)
+            else:
+                expression_file.write("  - For all " 
+                                      + exp[1] + " " + exp[2] + ", there exists a ")
+                
+                predicate = exp[3]
+                shape = predicate[0]
+                min_val = predicate[1].split("min=")[1]
+                direction = predicate[2]
+                
+                if direction == "RightOf":
+                    direction = " directly to the right of it"
+                
+                    expression_file.write(shape + " with min value " 
+                                          + min_val + direction + "\n")
 
 def write_expressions(expressions):
     """ Writes expressions to expressions.txt
