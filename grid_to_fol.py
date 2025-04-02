@@ -980,8 +980,8 @@ def hard1(grid, fol_exp):
             
             # First, check if condition is present in the last column
             # Reasoning: If there is a cell that exists on the right-most
-            # column, there cannot be another cell, and thus the implication
-            # becomes a T -> F scenario
+            # column, there cannot be another cell right of it, and thus the
+            # implication becomes a T -> F scenario
             # 
             # This reasoning is adapted to hard2(), hard3(), and hard4()
             for row in grid:
@@ -1021,7 +1021,68 @@ def hard1(grid, fol_exp):
 def hard2(grid, fol_exp):
     exp = list()
     
-    # NO-OP
+    for shape_color_exp in fol_exp.shape_color_exp:
+        for predicate in fol_exp.hard_one:
+            all_check = True
+            shape1 = shape_color_exp[1]
+            color1 = shape_color_exp[2]
+            shape2 = predicate[0]
+            min_val = predicate[1].split("min=")[1]
+            
+            if shape1 == "triangles":
+                shape1 = "T"
+            elif shape1 == "squares":
+                shape1 = "S"
+            else:
+                shape1 = "C"
+            
+            if shape2 == "triangles":
+                shape2 = "T"
+            elif shape2 == "squares":
+                shape2 = "S"
+            else:
+                shape2 = "C"
+            
+            if color1 == "red":
+                color1 = "R"
+            elif color1 == "blue":
+                color1 = "B"
+            else:
+                color1 = "G"
+            
+            # First, check if condition is present in the first column
+            # Reasoning: If there is a cell that exists on the left-most
+            # column, there cannot be another cell left of it, and thus the 
+            # implication becomes a T -> F scenario
+            for row in grid:
+                if row[0][1] == color1 and row[0][2] == shape1:
+                    all_check = False
+                if not all_check:
+                    break
+            
+            if not all_check:
+                break
+            
+            # If we're here, it's because there is no cell in the left-most
+            # column that satisfies the condition, so now we check for T -> T
+            limit = 0
+            for row in grid:
+                index = 4
+                while index > limit:
+                    if row[index][1] == color1 and row[index][2] == shape1:
+                        if row[index - 1][2] != shape2 or row[index - 1][0] < min_val:
+                            all_check = False
+                        if not all_check:
+                            break
+                    index -= 1
+                
+                if not all_check:
+                    break
+        
+            if all_check:
+                new_exp = list(shape_color_exp)
+                new_exp.append(predicate)
+                exp.append(tuple(new_exp))
     
     return exp
 
@@ -1034,6 +1095,71 @@ def hard3(grid, fol_exp):
 
 def hard4(grid, fol_exp):
     exp = list()
+    
+    ''' TO-DO: FINISH THIS
+    for shape_color_exp in fol_exp.shape_color_exp:
+        for predicate in fol_exp.hard_one:
+            all_check = True
+            shape1 = shape_color_exp[1]
+            color1 = shape_color_exp[2]
+            shape2 = predicate[0]
+            min_val = predicate[1].split("min=")[1]
+            
+            if shape1 == "triangles":
+                shape1 = "T"
+            elif shape1 == "squares":
+                shape1 = "S"
+            else:
+                shape1 = "C"
+            
+            if shape2 == "triangles":
+                shape2 = "T"
+            elif shape2 == "squares":
+                shape2 = "S"
+            else:
+                shape2 = "C"
+            
+            if color1 == "red":
+                color1 = "R"
+            elif color1 == "blue":
+                color1 = "B"
+            else:
+                color1 = "G"
+            
+            # First, check if condition is present in the last row
+            # Reasoning: If there is a cell that exists on the last
+            # row, there cannot be another cell below it, and thus the
+            # implication becomes a T -> F scenario
+            for cell in grid[4]:
+                if cell[1] == color1 and cell[2] == shape1:
+                    all_check = False
+                if not all_check:
+                    break
+            
+            if not all_check:
+                break
+            
+            # If we're here, it's because there is no cell in the last
+            # row that satisfies the condition, so now we check for T -> T
+            limit = 4
+            for row in grid[0:3]:
+                index = 0
+                while index < limit:
+                    if row[index][1] == color1 and row[index][2] == shape1:
+                        if row[index + 1][2] != shape2 or row[index + 1][0] < min_val:
+                            all_check = False
+                        if not all_check:
+                            break
+                    index += 1
+                
+                if not all_check:
+                    break
+        
+            if all_check:
+                new_exp = list(shape_color_exp)
+                new_exp.append(predicate)
+                exp.append(tuple(new_exp))
+    '''
     
     # NO-OP
     
