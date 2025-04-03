@@ -1099,7 +1099,6 @@ def hard3(grid, fol_exp):
 def hard4(grid, fol_exp):
     exp = list()
     
-    ''' TO-DO: FINISH THIS
     for shape_color_exp in fol_exp.shape_color_exp:
         for predicate in fol_exp.hard_one:
             all_check = True
@@ -1144,8 +1143,10 @@ def hard4(grid, fol_exp):
             
             # If we're here, it's because there is no cell in the last
             # row that satisfies the condition, so now we check for T -> T
+            
+            # TO-DO: fix this
             limit = 4
-            for row in grid[0:3]:
+            for row in grid:
                 index = 0
                 while index < limit:
                     if row[index][1] == color1 and row[index][2] == shape1:
@@ -1162,9 +1163,6 @@ def hard4(grid, fol_exp):
                 new_exp = list(shape_color_exp)
                 new_exp.append(predicate)
                 exp.append(tuple(new_exp))
-    '''
-    
-    # NO-OP
     
     return exp
     
