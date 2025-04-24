@@ -83,6 +83,30 @@ class FOL:
                 right_of = "RightOf"
                 exp = (shape, min_str, right_of)
                 self.hard_one.append(exp)
+                
+        self.hard_two = list()
+        for shape in self.shapes:
+            for num in self.numbers:
+                max_str = "max=" + num
+                left_of = "LeftOf"
+                exp = (shape, max_str, left_of)
+                self.hard_two.append(exp)
+                
+        self.hard_three = list()
+        for shape in self.shapes:
+            for num in self.numbers:
+                min_str = "min=" + num
+                above = "Above"
+                exp = (shape, min_str, above)
+                self.hard_three.append(exp)
+                
+        self.hard_four = list()
+        for shape in self.shapes:
+            for num in self.numbers:
+                max_str = "max=" + num
+                below = "Below"
+                exp = (shape, max_str, below)
+                self.hard_four.append(exp)
 
 def generate_grid(size):
     """ Generates a grid by creating a size by size matrix using a list.
@@ -946,225 +970,164 @@ def medium3(grid, fol_exp):
                 
     return exp
 
+# Vx shape(x) ^ color(x) ==> 3y shape(y) ^ value(y) > min_val ^ right_of(y, x)
 def hard1(grid, fol_exp):
     exp = list()
-    
+
     for shape_color_exp in fol_exp.shape_color_exp:
         for predicate in fol_exp.hard_one:
-            all_check = True
             shape1 = shape_color_exp[1]
             color1 = shape_color_exp[2]
             shape2 = predicate[0]
-            min_val = predicate[1].split("min=")[1]
-            
-            if shape1 == "triangles":
-                shape1 = "T"
-            elif shape1 == "squares":
-                shape1 = "S"
-            else:
-                shape1 = "C"
-            
-            if shape2 == "triangles":
-                shape2 = "T"
-            elif shape2 == "squares":
-                shape2 = "S"
-            else:
-                shape2 = "C"
-            
-            if color1 == "red":
-                color1 = "R"
-            elif color1 == "blue":
-                color1 = "B"
-            else:
-                color1 = "G"
-            
-            # First, check if condition is present in the last column
-            # Reasoning: If there is a cell that exists on the right-most
-            # column, there cannot be another cell right of it, and thus the
-            # implication becomes a T -> F scenario
-            # 
-            # This reasoning is adapted to hard2(), hard3(), and hard4()
-            for row in grid:
-                # TO-DO: change row[4][x] to row[len(grid[0]) - 1][x]
-                if row[4][1] == color1 and row[4][2] == shape1:
-                    all_check = False
-                if not all_check:
-                    break
-            
-            if not all_check:
-                break
-            
-            # If we're here, it's because there is no cell in the right-most
-            # column that satisfies the condition, so now we check for T -> T
-            #
-            # Don't check the last column to check RightOf() condition
+            min_val = int(predicate[1].split("min=")[1])
+            all_check = True
 
-            # Change limit to len(grid[0]) - 1 for flexibility
-            limit = 4
+            # Normalize shapes and colors ("triangles" → "T", etc.)
+            shape1 = shape1[0].upper()
+            shape2 = shape2[0].upper()
+            color1 = color1[0].upper()
+
+            # Check T -> F == skip if any matching x is in the last column
+            last_col_index = len(grid[0]) - 1
+            if any(row[last_col_index][1] == color1 and row[last_col_index][2] == shape1 for row in grid):
+                continue
+
             for row in grid:
-                index = 0
-                while index < limit:
-                    if row[index][1] == color1 and row[index][2] == shape1:
-                        if row[index + 1][2] != shape2 or row[index + 1][0] < min_val:
+                for i in range(len(row) - 1):
+                    x = row[i]
+                    y = row[i + 1]
+                    if x[1] == color1 and x[2] == shape1:
+                        if not (y[2] == shape2 and int(y[0]) >= min_val):
                             all_check = False
-                        if not all_check:
                             break
-                    index += 1
-                
                 if not all_check:
                     break
-        
+
             if all_check:
                 new_exp = list(shape_color_exp)
                 new_exp.append(predicate)
                 exp.append(tuple(new_exp))
-        
+
     return exp
 
+
+# Vx shape(x) ^ color(x) ==> 3y shape(y) ^ value(y) < max_val ^ left_of(y, x)
 def hard2(grid, fol_exp):
     exp = list()
-    
+
     for shape_color_exp in fol_exp.shape_color_exp:
-        for predicate in fol_exp.hard_one:
-            all_check = True
+        for predicate in fol_exp.hard_two:
             shape1 = shape_color_exp[1]
             color1 = shape_color_exp[2]
             shape2 = predicate[0]
-            min_val = predicate[1].split("min=")[1]
-            
-            if shape1 == "triangles":
-                shape1 = "T"
-            elif shape1 == "squares":
-                shape1 = "S"
-            else:
-                shape1 = "C"
-            
-            if shape2 == "triangles":
-                shape2 = "T"
-            elif shape2 == "squares":
-                shape2 = "S"
-            else:
-                shape2 = "C"
-            
-            if color1 == "red":
-                color1 = "R"
-            elif color1 == "blue":
-                color1 = "B"
-            else:
-                color1 = "G"
-            
-            # First, check if condition is present in the first column
-            # Reasoning: If there is a cell that exists on the left-most
-            # column, there cannot be another cell left of it, and thus the 
-            # implication becomes a T -> F scenario
+            max_val = int(predicate[1].split("max=")[1])
+            all_check = True
+
+            shape1 = shape1[0].upper()
+            shape2 = shape2[0].upper()
+            color1 = color1[0].upper()
+
+            # Check T -> F == skip if any matching x is in the first column
+            if any(row[0][1] == color1 and row[0][2] == shape1 for row in grid):
+                continue
+
             for row in grid:
-                if row[0][1] == color1 and row[0][2] == shape1:
-                    all_check = False
-                if not all_check:
-                    break
-            
-            if not all_check:
-                break
-            
-            # If we're here, it's because there is no cell in the left-most
-            # column that satisfies the condition, so now we check for T -> T
-            limit = 0
-            for row in grid:
-                index = 4
-                while index > limit:
-                    if row[index][1] == color1 and row[index][2] == shape1:
-                        if row[index - 1][2] != shape2 or row[index - 1][0] < min_val:
+                for i in range(1, len(row)):
+                    x = row[i]
+                    y = row[i - 1]
+
+                    if x[1] == color1 and x[2] == shape1:
+                        if y[2] != shape2 or int(y[0]) >= max_val:
                             all_check = False
-                        if not all_check:
                             break
-                    index -= 1
-                
                 if not all_check:
                     break
-        
+
             if all_check:
                 new_exp = list(shape_color_exp)
                 new_exp.append(predicate)
                 exp.append(tuple(new_exp))
-    
+
     return exp
 
+# Vx shape(x) ^ color(x) ==> 3y shape(y) ^ value(y) >= min_val ^ above(y, x)
 def hard3(grid, fol_exp):
     exp = list()
-    
-    # NO-OP
-    
-    return exp
 
-def hard4(grid, fol_exp):
-    exp = list()
-    
     for shape_color_exp in fol_exp.shape_color_exp:
-        for predicate in fol_exp.hard_one:
-            all_check = True
+        for predicate in fol_exp.hard_three:
             shape1 = shape_color_exp[1]
             color1 = shape_color_exp[2]
             shape2 = predicate[0]
-            min_val = predicate[1].split("min=")[1]
-            
-            if shape1 == "triangles":
-                shape1 = "T"
-            elif shape1 == "squares":
-                shape1 = "S"
-            else:
-                shape1 = "C"
-            
-            if shape2 == "triangles":
-                shape2 = "T"
-            elif shape2 == "squares":
-                shape2 = "S"
-            else:
-                shape2 = "C"
-            
-            if color1 == "red":
-                color1 = "R"
-            elif color1 == "blue":
-                color1 = "B"
-            else:
-                color1 = "G"
-            
-            # First, check if condition is present in the last row
-            # Reasoning: If there is a cell that exists on the last
-            # row, there cannot be another cell below it, and thus the
-            # implication becomes a T -> F scenario
-            for cell in grid[4]:
-                if cell[1] == color1 and cell[2] == shape1:
-                    all_check = False
-                if not all_check:
-                    break
-            
-            if not all_check:
-                break
-            
-            # If we're here, it's because there is no cell in the last
-            # row that satisfies the condition, so now we check for T -> T
-            
-            # TO-DO: fix this
-            limit = 4
-            for row in grid:
-                index = 0
-                while index < limit:
-                    if row[index][1] == color1 and row[index][2] == shape1:
-                        if row[index + 1][2] != shape2 or row[index + 1][0] < min_val:
+            min_val = int(predicate[1].split("min=")[1])
+            all_check = True
+
+            shape1 = shape1[0].upper()
+            shape2 = shape2[0].upper()
+            color1 = color1[0].upper()
+
+            # Check T -> F == if any matching x is in the first row, skip this case
+            if any(cell[1] == color1 and cell[2] == shape1 for cell in grid[0]):
+                continue
+
+            for row_idx in range(1, len(grid)):
+                for col in range(len(grid[0])):
+                    x = grid[row_idx][col]
+                    y = grid[row_idx - 1][col]
+
+                    if x[1] == color1 and x[2] == shape1:
+                        if not (y[2] == shape2 and int(y[0]) >= min_val):
                             all_check = False
-                        if not all_check:
                             break
-                    index += 1
-                
                 if not all_check:
                     break
-        
+
             if all_check:
                 new_exp = list(shape_color_exp)
                 new_exp.append(predicate)
                 exp.append(tuple(new_exp))
-    
+
     return exp
+
+# Vx shape(x) ^ color(x) ==> 3y shape(y) ^ value(y) < min_val ^ below(y, x)
+def hard4(grid, fol_exp):
+    exp = []
+
+    for shape_color_exp in fol_exp.shape_color_exp:
+        for predicate in fol_exp.hard_four:
+            shape1 = shape_color_exp[1]
+            color1 = shape_color_exp[2]
+            shape2 = predicate[0]
+            max_val = int(predicate[1].split("max=")[1])
+            all_check = True
+
+            shape1 = shape1[0].upper()
+            shape2 = shape2[0].upper()
+            color1 = color1[0].upper()
+
+            # Check T -> F == if any x is in the last row, skip
+            if any(cell[1] == color1 and cell[2] == shape1 for cell in grid[-1]):
+                continue
+
+            for row_idx in range(len(grid) - 1):
+                for col in range(len(grid[0])):
+                    x = grid[row_idx][col]
+                    y = grid[row_idx + 1][col]
+
+                    if x[1] == color1 and x[2] == shape1:
+                        if not (y[2] == shape2 and int(y[0]) < max_val):
+                            all_check = False
+                            break
+                if not all_check:
+                    break
+
+            if all_check:
+                new_exp = list(shape_color_exp)
+                new_exp.append(predicate)
+                exp.append(tuple(new_exp))
+
+    return exp
+
     
 def write_to_file(expression_file, count, expressions):
     """ Helper function for write_expressions()
@@ -1219,18 +1182,34 @@ def write_to_file(expression_file, count, expressions):
                 expression_file.write(splitter)
             else:
                 expression_file.write("  - For all " 
-                                      + exp[1] + " " + exp[2] + ", there exists a ")
+                                      + exp[2] + " " + exp[1] + ", there exists a ")
                 
                 predicate = exp[3]
                 shape = predicate[0]
-                min_val = predicate[1].split("min=")[1]
                 direction = predicate[2]
+                val = predicate[1].split("min=")[1] if direction == "RightOf" or direction == "Above" else predicate[1].split("max=")[1]
                 
                 if direction == "RightOf":
                     direction = " directly to the right of it"
                 
+                    # Value(y) > min_value
                     expression_file.write(shape + " with min value " 
-                                          + min_val + direction + "\n")
+                                          + val + direction + "\n")
+                elif direction == "LeftOf":
+                    direction = " directly to the left of it"
+                
+                    expression_file.write(shape + " with max value " 
+                                          + val + direction + "\n")
+                elif direction == "Above":
+                    direction = " directly above it"
+                
+                    expression_file.write(shape + " with min value of at least " 
+                                          + val + direction + "\n")
+                elif direction == "Below":
+                    direction = " directly below it"
+                
+                    expression_file.write(shape + " with max value " 
+                                          + val + direction + "\n")
 
 def write_expressions(expressions):
     """ Writes expressions to expressions.txt
