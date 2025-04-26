@@ -178,288 +178,195 @@ def easy1(grid, fol_exp):
     exp = list()
     
     for shape_exp in fol_exp.shape_exp:
-        for i in range(len(fol_exp.color_predicates)):            
-            all_check = True
-            shape = shape_exp[1]
-            color = fol_exp.color_predicates[i].split("color=")[1]
+        shape = shape_exp[1][0].upper()
+        
+        for color_pred in fol_exp.color_predicates:
+            color = color_pred.split("color=")[1][0].upper()
             
-            if shape == "triangles":
-                shape = "T"
-            elif shape == "squares":
-                shape = "S"
-            else:
-                shape = "C"
-            
-            if color == "red":
-                color = "R"
-            elif color == "blue":
-                color = "B"
-            else:
-                color = "G"
-            
-            for row in grid:
-                for col in row:
-                    if shape == col[2]:
-                        if color != col[1]: # Counterexample
-                            all_check = False
-                            break
-                    
-                if not all_check:
-                    break
+            # Check if all cells with the shape also have the matching color
+            all_check = all(
+                col[1] == color
+                for row in grid
+                for col in row
+                if col[2] == shape
+            )
             
             if all_check:
                 new_exp = list(shape_exp)
-                new_exp.append(fol_exp.color_predicates[i])
+                new_exp.append(color_pred)
                 exp.append(tuple(new_exp))
                 
     return exp
 
 def easy2(grid, fol_exp):
     exp = list()
-    
-    for color_exp in fol_exp.color_exp:
-        for i in range(len(fol_exp.color_predicates)):
-            all_check = True
-            color = color_exp[1]
-            shape = fol_exp.shape_predicates[i].split("shape=")[1]
-            
-            if color == "red":
-                color = "R"
-            elif color == "blue":
-                color = "B"
-            else:
-                color = "G"
-            
-            if shape == "triangle":
-                shape = "T"
-            elif shape == "square":
-                shape = "S"
-            else:
-                shape = "C"
 
-            for row in grid:
-                for col in row:
-                    if color == col[1]:
-                        if shape != col[2]: # Counterexample
-                            all_check = False
-                            break
-                    
-                if not all_check:
-                    break
-            
+    for color_exp in fol_exp.color_exp:
+        color = color_exp[1][0].upper()
+
+        for shape_pred in fol_exp.shape_predicates:
+            shape = shape_pred.split("shape=")[1][0].upper()
+
+            all_check = all(
+                col[2] == shape
+                for row in grid
+                for col in row
+                if col[1] == color
+            )
+
             if all_check:
                 new_exp = list(color_exp)
-                new_exp.append(fol_exp.shape_predicates[i])
+                new_exp.append(shape_pred)
                 exp.append(tuple(new_exp))
-                
+
     return exp
 
 def easy3(grid, fol_exp):
     exp = list()
-    
+
     for shape_exp in fol_exp.shape_exp:
+        shape = shape_exp[1][0].upper()
+
         for i in range(len(fol_exp.num_predicates)):
-            all_check = True
-            shape = shape_exp[1]
             num = fol_exp.num_predicates[i].split("num=")[1]
-            
-            if shape == "triangles":
-                shape = "T"
-            elif shape == "squares":
-                shape = "S"
-            else:
-                shape = "C"
-            
-            for row in grid:
-                for col in row:
-                    if shape == col[2]:
-                        if num != col[0]: # Counterexample
-                            all_check = False
-                            break
-                    
-                if not all_check:
-                    break
-            
+
+            all_check = all(
+                str(col[0]) == num
+                for row in grid
+                for col in row
+                if col[2] == shape
+            )
+
             if all_check:
                 new_exp = list(shape_exp)
                 new_exp.append(fol_exp.num_predicates[i])
                 exp.append(tuple(new_exp))
-        
-        # Even-Odd
+
         for i in range(len(fol_exp.even_odd)):
-            all_check = True
-            shape = shape_exp[1]
-            if shape == "triangles":
-                shape = "T"
-            elif shape == "squares":
-                shape = "S"
-            else:
-                shape = "C"
             num = fol_exp.even_odd[i]
 
-            for row in grid:
-                for col in row:
-                    if shape == col[2]:
-                        if num == "even=TRUE" and int(col[0]) % 2 != 0: # Counterexample
-                            all_check = False
-                            break
-                        elif num == "odd=TRUE" and int(col[0]) % 2 != 1:
-                            all_check = False
-                            break
-                    
-                if not all_check:
-                    break
-            
+            if num == "even=TRUE":
+                check = lambda v: v % 2 == 0
+            else:
+                check = lambda v: v % 2 == 1
+
+            all_check = all(
+                check(int(col[0]))
+                for row in grid
+                for col in row
+                if col[2] == shape
+            )
+
             if all_check:
                 new_exp = list(shape_exp)
                 new_exp.append(fol_exp.even_odd[i])
                 exp.append(tuple(new_exp))
-                
+
     return exp
-    
+
 def easy4(grid, fol_exp):
     exp = list()
-    
-    for num_exp in fol_exp.num_exp:
-        for i in range(len(fol_exp.color_predicates)):
-            all_check = True
-            num = num_exp[1]
-            shape = fol_exp.shape_predicates[i].split("shape=")[1]
-            
-            if shape == "triangle":
-                shape = "T"
-            elif shape == "square":
-                shape = "S"
-            else:
-                shape = "C"
 
-            for row in grid:
-                for col in row:
-                    if num == col[0]:
-                        if shape != col[2]: # Counterexample
-                            all_check = False
-                            break
-                    elif num == "even" and int(col[0]) % 2 == 0:
-                        if shape != col[2]:
-                            all_check = False
-                            break
-                    elif num == "odd" and int(col[0]) % 2 == 1:
-                        if shape != col[2]:
-                            all_check = False
-                            break
-                    
-                if not all_check:
-                    break
-            
+    for num_exp in fol_exp.num_exp:
+        num = num_exp[1]
+
+        for i in range(len(fol_exp.color_predicates)):
+            shape = fol_exp.shape_predicates[i].split("shape=")[1]
+            shape = shape[0].upper()
+
+            if num in {"even", "odd"}:
+                check = (lambda v: v % 2 == 0) if num == "even" else (lambda v: v % 2 == 1)
+                all_check = all(
+                    col[2] == shape
+                    for row in grid
+                    for col in row
+                    if check(int(col[0]))
+                )
+            else:
+                all_check = all(
+                    col[2] == shape
+                    for row in grid
+                    for col in row
+                    if str(col[0]) == num
+                )
+
             if all_check:
                 new_exp = list(num_exp)
                 new_exp.append(fol_exp.shape_predicates[i])
                 exp.append(tuple(new_exp))
-                
+
     return exp
 
 def easy5(grid, fol_exp):
     exp = list()
-    
-    for num_exp in fol_exp.num_exp:
-        for i in range(len(fol_exp.color_predicates)):
-            all_check = True
-            num = num_exp[1]
-            color = fol_exp.color_predicates[i].split("color=")[1]
-            
-            if color == "red":
-                color = "R"
-            elif color == "blue":
-                color = "B"
-            else:
-                color = "G"
 
-            for row in grid:
-                for col in row:
-                    if num == col[0]:
-                        if color != col[1]: # Counterexample
-                            all_check = False
-                            break
-                    elif num == "even" and int(col[0]) % 2 == 0:
-                        if color != col[1]:
-                            all_check = False
-                            break
-                    elif num == "odd" and int(col[0]) % 2 == 1:
-                        if color != col[1]:
-                            all_check = False
-                            break
-                    
-                if not all_check:
-                    break
-            
+    for num_exp in fol_exp.num_exp:
+        num = num_exp[1]
+
+        for i in range(len(fol_exp.color_predicates)):
+            color = fol_exp.color_predicates[i].split("color=")[1]
+            color = color[0].upper()
+
+            if num in {"even", "odd"}:
+                check = (lambda v: v % 2 == 0) if num == "even" else (lambda v: v % 2 == 1)
+                all_check = all(
+                    col[1] == color
+                    for row in grid
+                    for col in row
+                    if check(int(col[0]))
+                )
+            else:
+                all_check = all(
+                    col[1] == color
+                    for row in grid
+                    for col in row
+                    if str(col[0]) == num
+                )
+
             if all_check:
                 new_exp = list(num_exp)
                 new_exp.append(fol_exp.color_predicates[i])
                 exp.append(tuple(new_exp))
-                
-    return exp
-    
-def easy6(grid, fol_exp):
-    exp = list()
-    
-    for color_exp in fol_exp.color_exp:
-        for i in range(len(fol_exp.num_predicates)):
-            all_check = True
-            color = color_exp[1]
-            num = fol_exp.num_predicates[i].split("num=")[1]
-            if color == "red":
-                color = "R"
-            elif color == "blue":
-                color = "B"
-            else:
-                color = "G"
 
-            for row in grid:
-                for col in row:
-                    if color == col[1]:
-                        if num != col[0]: # Counterexample
-                            all_check = False
-                            break
-                    
-                if not all_check:
-                    break
-            
+    return exp
+
+def easy6(grid, fol_exp):
+    exp = []
+
+    for color_exp in fol_exp.color_exp:
+        color = color_exp[1][0].upper()
+
+        for i in range(len(fol_exp.num_predicates)):
+            num = fol_exp.num_predicates[i].split("num=")[1]
+
+            all_check = all(
+                str(col[0]) == num
+                for row in grid
+                for col in row
+                if col[1] == color
+            )
+
             if all_check:
                 new_exp = list(color_exp)
                 new_exp.append(fol_exp.num_predicates[i])
                 exp.append(tuple(new_exp))
-        
-        # Even-Odd
-        for i in range(len(fol_exp.even_odd)):
-            all_check = True
-            color = color_exp[1]
-            num = fol_exp.even_odd[i]
-            
-            if color == "red":
-                color = "R"
-            elif color == "blue":
-                color = "B"
-            else:
-                color = "G"
 
-            for row in grid:
-                for col in row:
-                    if color == col[1]:
-                        if num == "even=TRUE" and int(col[0]) % 2 != 0: # Counterexample
-                            all_check = False
-                            break
-                        elif num == "odd=TRUE" and int(col[0]) % 2 != 1:
-                            all_check = False
-                            break
-                    
-                if not all_check:
-                    break
-            
+        for i in range(len(fol_exp.even_odd)):
+            num = fol_exp.even_odd[i]
+            check = (lambda v: v % 2 == 0) if num == "even=TRUE" else (lambda v: v % 2 == 1)
+
+            all_check = all(
+                check(int(col[0]))
+                for row in grid
+                for col in row
+                if col[1] == color
+            )
+
             if all_check:
                 new_exp = list(color_exp)
                 new_exp.append(fol_exp.even_odd[i])
                 exp.append(tuple(new_exp))
-    
+
     return exp
 
 def medium1(grid, fol_exp):
