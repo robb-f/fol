@@ -872,10 +872,23 @@ def generate_expressions(grid):
     
     return easy_expressions, medium_expressions, hard_expressions
 
+def check_expressions(test_expression, expressions):
+    pass
+
 
 if __name__ == "__main__":
+    # Driver
     size = int(input("Enter size of grid: "))
     grid = generate_grid(size)
     print_grid(grid, size)
     expressions = generate_expressions(grid)
     write_expressions(expressions)
+    
+    ''' TO-DO: Implement check_expressions()
+    test_expressions = [exp1, exp2, exp3, ...]
+    for test in test_expressions:
+        if not check_expressions(test, expressions):
+            print(f"FAILED TEST CASE:\t{test}")
+        else:
+            print("PASSED!")
+    '''

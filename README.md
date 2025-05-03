@@ -2,14 +2,14 @@
 
 Basic API to generate a list of all valid FOL expressions given a grid.
 
+The user has the ability to set the grid size, though 5 is used for testing.
+
 The main function in this file currently demonstrates how the functions work.
 
 Valid expressions are generated and written to a file `expressions.txt`, which
 will reside in the same directory as the git repo.
 
 Currently in the works:
-- Alter template algorithms to account for different display sizes and increase
-increase flexibility
 - `check_expression()`: A function that would take a single FOL statement as
 input, and returns a boolean that represents whether the expression is valid
 for the grid 
