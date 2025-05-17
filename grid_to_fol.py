@@ -687,7 +687,7 @@ def hard3(grid, fol_exp):
     return exp
 
 def hard4(grid, fol_exp):
-    exp = []
+    exp = list()
 
     for shape_color_exp in fol_exp.shape_color_exp:
         for predicate in fol_exp.hard_four:
@@ -872,8 +872,48 @@ def generate_expressions(grid):
     
     return easy_expressions, medium_expressions, hard_expressions
 
+def validate_expression(element, index):
+    # Validate structure of the test expression by index
+    if index == 0:
+        return element == "All"
+    elif index == 1:
+        return element in ["triangles", "squares", "circles", "red", "blue", "green", *map(str, range(10)), "even", "odd"]
+    elif index == 2:
+        return element in [*map(str, range(10)), "even", "odd", *["min=" + str(i) for i in range(10)], *["max=" + str(i) for i in range(10)], "red", "blue", "green"]
+    elif isinstance(element, tuple):
+        if len(element) == 2:
+            color, loc = element
+            valid_colors = ["color=red", "color=blue", "color=green"]
+            valid_locs = ["loc=top2", "loc=top3", "loc=bottom2", "loc=bottom3", "loc=left2", "loc=left3", "loc=right2", "loc=right3"]
+            return color in valid_colors and loc in valid_locs
+    return True  # Accept extra elements unless invalid by content
+
 def check_expressions(test_expression, expressions):
-    pass
+    if len(test_expression) < 3:
+        raise ValueError("Test expression does not meet minimum number of elements")
+    if len(test_expression) > 6:
+        raise ValueError("Test expression exceeds maximum expression size")
+    if test_expression[0] != "All":
+        raise ValueError("Test expression must begin with \"All\"")
+
+    for idx, element in enumerate(test_expression):
+        if not validate_expression(element, idx):
+            raise ValueError(f"Invalid element at position {idx}: {element}")
+
+    # Normalize number strings like '9' to match the types used in expressions
+    normalized = []
+    for val in test_expression:
+        if isinstance(val, str) and val.isdigit():
+            normalized.append(str(int(val)))  # removes leading zeros, etc.
+        else:
+            normalized.append(val)
+
+    # Check for membership
+    for difficulty in expressions:
+        for subset in difficulty:
+            if tuple(normalized) in subset:
+                return True
+    return False
 
 
 if __name__ == "__main__":
@@ -892,3 +932,8 @@ if __name__ == "__main__":
         else:
             print("PASSED!")
     '''
+    test_expression = ['All', 'circles', '9', ('color=green', 'loc=right2')]
+    if check_expressions(test_expression, expressions):
+        print(f"Expression {test_expression} is a valid expression")
+    else:
+        print(f"Couldn't find expression {test_expression}")
