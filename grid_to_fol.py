@@ -607,6 +607,7 @@ def hard1(grid, fol_exp):
                 new_exp.append(predicate)
                 exp.append(tuple(new_exp))
 
+    print(exp)
     return exp
 
 def hard2(grid, fol_exp):
@@ -941,7 +942,7 @@ def check_expressions(test_expression, expressions):
     """
     if len(test_expression) < 3:
         raise ValueError("Test expression does not meet minimum number of elements")
-    if len(test_expression) > 6:
+    if len(test_expression) > 4:
         raise ValueError("Test expression exceeds maximum expression size")
     if test_expression[0] != "All":
         raise ValueError("Test expression must begin with \"All\"")
